@@ -14,6 +14,25 @@ let studentSubjectFilter = 'all';
 let staffFilter   = 'all';
 let leadFilter    = 'all';
 
+
+// ── STATIC COURSE LIST FOR FILTER TABS ──
+const STATIC_COURSES = [
+  {name:'Piano',      emoji:'🎹', match:'Piano'},
+  {name:'Guitar',     emoji:'🎸', match:'Guitar'},
+  {name:'Violin',     emoji:'🎻', match:'Violin'},
+  {name:'Ukulele',    emoji:'🪕', match:'Ukulele'},
+  {name:'Vẽ',         emoji:'🎨', match:'Vẽ'},
+  {name:'Ballet',     emoji:'🩰', match:'Ballet'},
+  {name:'Dance',      emoji:'💃', match:'Dance'},
+  {name:'Khiêu Vũ',   emoji:'🕺', match:'Khiêu Vũ'},
+  {name:'Múa Cổ Trang',emoji:'👘', match:'Múa Cổ Trang'},
+  {name:'Thanh Nhạc', emoji:'🎤', match:'Thanh Nhạc'},
+  {name:'Luyện Thi',  emoji:'🏆', match:'Luyện Thi'},
+  {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
+  {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
+  {name:'Trống',      emoji:'🥁', match:'Trống'},
+];
+
 // ── HELPERS ──
 const fmt     = n => Number(n||0).toLocaleString('vi-VN') + ' đ';
 const fmtDate = d => { if (!d) return '–'; const p = d.split('-'); if (p.length === 3) return p[2]+'/'+p[1]+'/'+p[0]; return d; };
@@ -206,8 +225,26 @@ function renderClassFilterBtns() {
 function setStudentSubjectFilter(f, el) {
   studentSubjectFilter = f;
   document.querySelectorAll('#filter-subject-tabs .filter-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   renderStudentTable();
+}
+
+function renderSubjectFilterBtns() {
+  const wrap = document.getElementById('subject-filter-btns');
+  if (!wrap) return;
+  // Build full list: static + custom (dedup by name)
+  const staticNames = new Set(STATIC_COURSES.map(c => c.name));
+  const allTabs = [...STATIC_COURSES];
+  customCourses.forEach(c => {
+    if (!staticNames.has(c.name)) allTabs.push({name: c.name, emoji: c.emoji||'📚', match: c.name});
+  });
+  wrap.innerHTML = allTabs.map(c => {
+    const active = (studentSubjectFilter === c.match || studentSubjectFilter === c.name) ? ' active' : '';
+    return `<button class="filter-tab${active}" onclick="setStudentSubjectFilter('${c.match}',this)">${c.emoji} ${c.name}</button>`;
+  }).join('');
+  // Tất Cả button ở đầu
+  const allBtn = `<button class="filter-tab${studentSubjectFilter==='all'?' active':''}" onclick="setStudentSubjectFilter('all',this)">Tất Cả</button>`;
+  wrap.innerHTML = allBtn + wrap.innerHTML;
 }
 
 function closeCourse(){document.getElementById('course-modal').classList.remove('open');}
@@ -262,12 +299,13 @@ function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page
 
 function renderStudentTable(){
   renderClassFilterBtns();
+  renderSubjectFilterBtns();
   const q=(document.getElementById('search-input').value||'').toLowerCase();
   const filtered=students.filter(s=>{
     const mq=!q||s.name.toLowerCase().includes(q)||s.phone.includes(q)||s.subject.toLowerCase().includes(q)||(s.parent&&s.parent.toLowerCase().includes(q));
     const mf=studentFilter==='all'||s.payment===studentFilter;
     const mc=studentClassFilter==='all'||s.classid===studentClassFilter;
-    const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
+    const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
     return mq&&mf&&ms&&mc;
   });
   const tbody=document.getElementById('student-table-body');
@@ -874,6 +912,7 @@ function closeCustomCourseModal() {
 }
 
 function renderCoursesPage() {
+  renderSubjectFilterBtns();
   // Re-render course cards including custom ones
   const grid = document.getElementById('courses-grid');
   if (!grid) return;
