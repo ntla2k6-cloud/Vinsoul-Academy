@@ -6,6 +6,7 @@ let editStudentId = null;
 let editStaffId   = null;
 let editLeadId    = null;
 let studentFilter = 'all';
+let studentSubjectFilter = 'all';
 let staffFilter   = 'all';
 let leadFilter    = 'all';
 
@@ -71,6 +72,45 @@ function openCourse(key){
   document.getElementById('modal-content').innerHTML=html;
   document.getElementById('course-modal').classList.add('open');
 }
+
+// ── PACKAGE OPTIONS PER COURSE ──
+const COURSE_PACKAGES = {
+  'Piano':                              ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Guitar':                             ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Violin':                             ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Ukulele':                            ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Vẽ Mầm Non':                         ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Vẽ Căn Bản':                         ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Vẽ - Ký Họa / Màu Nước / Màu Marker':['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Vẽ - Màu Acrylic Canvas / Digital Art':['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Ballet (3-5 tuổi)':                  ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Ballet (6-9 tuổi)':                  ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Dance':                              ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Khiêu Vũ':                           ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Múa Cổ Trang':                       ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Thanh Nhạc':                         ['Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Luyện Thi - Piano':                  ['Luyện 3-1 · 3 tháng/24 buổi','Luyện 2-1 · 3 tháng/24 buổi','Luyện 1-1 · 3 tháng/24 buổi'],
+  'Luyện Thi - Guitar':                 ['Luyện 3-1 · 3 tháng/24 buổi','Luyện 2-1 · 3 tháng/24 buổi','Luyện 1-1 · 3 tháng/24 buổi','Luyện 3-1 · 1 tháng/8 buổi','Luyện 2-1 · 1 tháng/8 buổi','Luyện 1-1 · 1 tháng/8 buổi'],
+  'Luyện Thi - Violin':                 ['Luyện 3-1 · 3 tháng/24 buổi','Luyện 2-1 · 3 tháng/24 buổi','Luyện 1-1 · 3 tháng/24 buổi'],
+  'Luyện Thi - Vẽ':                     ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+};
+
+function populatePackages(selectedPkg) {
+  const subj = document.getElementById('f-subject').value;
+  const pkgSel = document.getElementById('f-package');
+  const pkgs = COURSE_PACKAGES[subj] || [];
+  pkgSel.innerHTML = pkgs.length
+    ? '<option value="">-- Chọn gói --</option>' + pkgs.map(p => `<option${p===selectedPkg?' selected':''}>${p}</option>`).join('')
+    : '<option value="">-- Chọn khóa học trước --</option>';
+}
+
+function setStudentSubjectFilter(f, el) {
+  studentSubjectFilter = f;
+  document.querySelectorAll('#filter-subject-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderStudentTable();
+}
+
 function closeCourse(){document.getElementById('course-modal').classList.remove('open');}
 function closeCourseModal(e){if(e.target===document.getElementById('course-modal'))closeCourse();}
 
@@ -89,6 +129,7 @@ function saveStudent(){
 function clearStudentForm(){
   ['f-name','f-dob','f-parent','f-phone','f-package','f-start','f-end','f-note','f-amount','f-paydate'].forEach(id=>document.getElementById(id).value='');
   ['f-subject','f-payment'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-package').innerHTML='<option value="">-- Chọn khóa học trước --</option>';
   editStudentId=null; document.getElementById('form-title').innerHTML='Thêm <span>Học Viên</span>';
 }
 function editStudent(id){
@@ -98,7 +139,7 @@ function editStudent(id){
   document.getElementById('f-parent').value=s.parent;
   document.getElementById('f-phone').value=s.phone;
   document.getElementById('f-subject').value=s.subject;
-  document.getElementById('f-package').value=s.pkg||'';
+  populatePackages(s.pkg||'');
   document.getElementById('f-start').value=s.start;
   document.getElementById('f-end').value=s.end||'';
   document.getElementById('f-payment').value=s.payment;
@@ -123,7 +164,8 @@ function renderStudentTable(){
   const filtered=students.filter(s=>{
     const mq=!q||s.name.toLowerCase().includes(q)||s.phone.includes(q)||s.subject.toLowerCase().includes(q)||(s.parent&&s.parent.toLowerCase().includes(q));
     const mf=studentFilter==='all'||s.payment===studentFilter;
-    return mq&&mf;
+    const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
+    return mq&&mf&&ms;
   });
   const tbody=document.getElementById('student-table-body');
   if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Không tìm thấy học viên nào</div></div></td></tr>`;return;}
