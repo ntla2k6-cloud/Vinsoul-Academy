@@ -1,11 +1,13 @@
 // ── STATE ──
 let students      = JSON.parse(localStorage.getItem('vs_students') || '[]');
+let classes       = JSON.parse(localStorage.getItem('vs_classes')   || '[]');
 let staff         = JSON.parse(localStorage.getItem('vs_staff')    || '[]');
 let leads         = JSON.parse(localStorage.getItem('vs_leads')    || '[]');
 let editStudentId = null;
 let editStaffId   = null;
 let editLeadId    = null;
 let studentFilter = 'all';
+let studentClassFilter = 'all';
 let studentSubjectFilter = 'all';
 let staffFilter   = 'all';
 let leadFilter    = 'all';
@@ -17,6 +19,7 @@ const save    = () => {
   localStorage.setItem('vs_students', JSON.stringify(students));
   localStorage.setItem('vs_staff',    JSON.stringify(staff));
   localStorage.setItem('vs_leads',    JSON.stringify(leads));
+  localStorage.setItem('vs_classes',   JSON.stringify(classes));
 };
 
 // ── DELETE MODAL ──
@@ -36,10 +39,11 @@ function showPage(id) {
     const oc = n.getAttribute('onclick') || '';
     if (oc.includes("'" + id + "'") || oc.includes('"' + id + '"')) n.classList.add('active');
   });
-  const map = { students: renderStudentTable, staff: renderStaffTable, dashboard: renderDashboard, revenue: renderRevenue, leads: renderLeadTable };
+  const map = { students: renderStudentTable, staff: renderStaffTable, dashboard: renderDashboard, revenue: renderRevenue, leads: renderLeadTable, classes: renderClassTable, schedule: renderSchedule };
   if (map[id]) map[id]();
 }
 function startAddStudent() { editStudentId = null; clearStudentForm(); showPage('add-student'); }
+function startAddClass()   { editClassId   = null; clearClassForm();   showPage('add-class'); }
 function startAddStaff()   { editStaffId   = null; clearStaffForm();   showPage('add-staff'); }
 function startAddLead()    { editLeadId    = null; clearLeadForm();    showPage('add-lead'); }
 
@@ -56,7 +60,8 @@ const CD={
   muacotrang:{name:'MÚA CỔ TRANG',emoji:'👘',sections:[{title:'Múa Cổ Trang',rows:[{desc:'Lớp nhóm · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp nhóm · 1 tháng/8 buổi',amount:1400000},{desc:'Đóng 2 lần · 3 tháng/24 buổi',amount:1800000}]}]},
   thanhnhac:{name:'THANH NHẠC',emoji:'🎤',sections:[{title:'Căn Bản',rows:[{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]},
   'luyen-thi':{name:'LUYỆN THI QUỐC TẾ',emoji:'🏆',sections:[{title:'Luyện Thi – Guitar',rows:[{desc:'Luyện 3-1 · 3T/24b',amount:6000000},{desc:'Luyện 2-1 · 3T/24b',amount:8400000},{desc:'Luyện 1-1 · 3T/24b',amount:12000000},{desc:'Luyện 3-1 · 1T/8b',amount:2200000},{desc:'Luyện 2-1 · 1T/8b',amount:3000000},{desc:'Luyện 1-1 · 1T/8b',amount:4200000}]},{title:'Luyện Thi – Violin',rows:[{desc:'Luyện 3-1 · 3T/24b',amount:6000000},{desc:'Luyện 2-1 · 3T/24b',amount:8400000},{desc:'Luyện 1-1 · 3T/24b',amount:12000000}]},{title:'Luyện Thi – Piano',rows:[{desc:'Luyện 3-1 · 3T/24b',amount:6000000},{desc:'Luyện 2-1 · 3T/24b',amount:8400000},{desc:'Luyện 1-1 · 3T/24b',amount:12000000}]},{title:'Luyện Thi – Vẽ',rows:[{desc:'Lớp nhóm · 3T/24b',amount:7200000},{desc:'Lớp nhóm · 1T/8b',amount:2600000},{desc:'Đóng 2 lần · 3T/24b',amount:3600000}]}]},
-  hocthu:{name:'HỌC THỬ',emoji:'⭐',sections:[{title:'Các Loại Học Thử',rows:[{desc:'Học thử lớp nhóm',amount:100000},{desc:'Học thử 2-1',amount:250000},{desc:'Học thử 1-1',amount:500000}]}]}
+  hocthu:{name:'HỌC THỬ',emoji:'⭐',sections:[{title:'Các Loại Học Thử',rows:[{desc:'Học thử lớp nhóm',amount:100000},{desc:'Học thử 2-1',amount:250000},{desc:'Học thử 1-1',amount:500000}]}]},
+  camthu:{name:'CẢM THỤ ÂM NHẠC',emoji:'🎼',sections:[{title:'Cảm Thụ Âm Nhạc Miễn Phí',rows:[{desc:'Lớp nhóm · 24 buổi · Miễn phí',amount:0}]}]}
 };
 
 function openCourse(key){
@@ -93,6 +98,7 @@ const COURSE_PACKAGES = {
   'Luyện Thi - Guitar':                 ['Luyện 3-1 · 3 tháng/24 buổi','Luyện 2-1 · 3 tháng/24 buổi','Luyện 1-1 · 3 tháng/24 buổi','Luyện 3-1 · 1 tháng/8 buổi','Luyện 2-1 · 1 tháng/8 buổi','Luyện 1-1 · 1 tháng/8 buổi'],
   'Luyện Thi - Violin':                 ['Luyện 3-1 · 3 tháng/24 buổi','Luyện 2-1 · 3 tháng/24 buổi','Luyện 1-1 · 3 tháng/24 buổi'],
   'Luyện Thi - Vẽ':                     ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
+  'Cảm Thụ Âm Nhạc':                   ['Miễn Phí · 24 buổi'],
 };
 
 function populatePackages(selectedPkg) {
@@ -102,8 +108,31 @@ function populatePackages(selectedPkg) {
   pkgSel.innerHTML = pkgs.length
     ? '<option value="">-- Chọn gói --</option>' + pkgs.map(p => `<option${p===selectedPkg?' selected':''}>${p}</option>`).join('')
     : '<option value="">-- Chọn khóa học trước --</option>';
+  // populate class dropdown
+  const clSel = document.getElementById('f-classid');
+  if (clSel) {
+    const filtered = classes.filter(c => !subj || c.subject === subj);
+    clSel.innerHTML = '<option value="">-- Chọn lớp (nếu có) --</option>'
+      + filtered.map(c => `<option value="${c.id}">[${c.code}] ${c.name}</option>`).join('');
+  }
+}
+function onClassSelect() {
+  // tự động điền tên lớp nếu chọn
 }
 
+function setStudentClassFilter(f, el) {
+  studentClassFilter = f;
+  document.querySelectorAll('#filter-class-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderStudentTable();
+}
+function renderClassFilterBtns() {
+  const wrap = document.getElementById('class-filter-btns');
+  if (!wrap) return;
+  const allActive = studentClassFilter==='all' ? ' active' : '';
+  wrap.innerHTML = `<button class="filter-tab${allActive}" onclick="setStudentClassFilter('all',this)">Tất Cả</button>`
+    + classes.map(c => `<button class="filter-tab${studentClassFilter===c.id?' active':''}" onclick="setStudentClassFilter('${c.id}',this)">[${c.code}] ${c.name}</button>`).join('');
+}
 function setStudentSubjectFilter(f, el) {
   studentSubjectFilter = f;
   document.querySelectorAll('#filter-subject-tabs .filter-tab').forEach(t => t.classList.remove('active'));
@@ -118,10 +147,10 @@ function closeCourseModal(e){if(e.target===document.getElementById('course-modal
 function saveStudent(){
   const g=id=>document.getElementById(id).value.trim?document.getElementById(id).value.trim():document.getElementById(id).value;
   const name=g('f-name'),dob=g('f-dob'),parent=g('f-parent'),phone=g('f-phone'),
-        subject=g('f-subject'),pkg=g('f-package'),start=g('f-start'),end=g('f-end'),
+        subject=g('f-subject'),pkg=g('f-package'),classid=document.getElementById('f-classid')?document.getElementById('f-classid').value:'',start=g('f-start'),end=g('f-end'),
         payment=g('f-payment'),amount=g('f-amount'),paydate=g('f-paydate'),note=g('f-note');
   if(!name||!parent||!phone||!subject||!start||!payment){showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)',true);return;}
-  const obj={id:editStudentId||Date.now(),name,dob,parent,phone,subject,pkg,start,end,payment,amount:Number(amount)||0,paydate,note};
+  const obj={id:editStudentId||Date.now(),name,dob,parent,phone,subject,pkg,classid,start,end,payment,amount:Number(amount)||0,paydate,note};
   if(editStudentId!==null){const i=students.findIndex(s=>s.id===editStudentId);if(i!==-1)students[i]=obj;editStudentId=null;}
   else students.push(obj);
   save(); showToast('Đã lưu học viên thành công!'); clearStudentForm(); showPage('students');
@@ -130,6 +159,7 @@ function clearStudentForm(){
   ['f-name','f-dob','f-parent','f-phone','f-package','f-start','f-end','f-note','f-amount','f-paydate'].forEach(id=>document.getElementById(id).value='');
   ['f-subject','f-payment'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-package').innerHTML='<option value="">-- Chọn khóa học trước --</option>';
+  const clSel=document.getElementById('f-classid');if(clSel)clSel.innerHTML='<option value="">-- Chọn lớp (nếu có) --</option>';
   editStudentId=null; document.getElementById('form-title').innerHTML='Thêm <span>Học Viên</span>';
 }
 function editStudent(id){
@@ -140,6 +170,7 @@ function editStudent(id){
   document.getElementById('f-phone').value=s.phone;
   document.getElementById('f-subject').value=s.subject;
   populatePackages(s.pkg||'');
+  const clSel = document.getElementById('f-classid'); if(clSel && s.classid) { clSel.value = s.classid; }
   document.getElementById('f-start').value=s.start;
   document.getElementById('f-end').value=s.end||'';
   document.getElementById('f-payment').value=s.payment;
@@ -160,12 +191,14 @@ function deleteStudent(id) {
 function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderStudentTable();}
 
 function renderStudentTable(){
+  renderClassFilterBtns();
   const q=(document.getElementById('search-input').value||'').toLowerCase();
   const filtered=students.filter(s=>{
     const mq=!q||s.name.toLowerCase().includes(q)||s.phone.includes(q)||s.subject.toLowerCase().includes(q)||(s.parent&&s.parent.toLowerCase().includes(q));
     const mf=studentFilter==='all'||s.payment===studentFilter;
+    const mc=studentClassFilter==='all'||s.classid===studentClassFilter;
     const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
-    return mq&&mf&&ms;
+    return mq&&mf&&ms&&mc;
   });
   const tbody=document.getElementById('student-table-body');
   if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Không tìm thấy học viên nào</div></div></td></tr>`;return;}
@@ -178,6 +211,7 @@ function renderStudentTable(){
       <td>${s.parent}</td>
       <td>${s.phone}</td>
       <td style="font-weight:600;color:var(--navy)">${s.subject}${s.pkg?`<br><span style="font-size:10px;color:var(--muted);font-weight:400">${s.pkg}</span>`:''}</td>
+      <td>${(()=>{const cl=classes.find(c=>c.id===s.classid);return cl?`<span class='pos-badge'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
       <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span></td>
       <td>${pb(s.payment)}</td>
       <td style="font-weight:700;color:var(--gold)">${s.amount?fmt(s.amount):'–'}</td>
@@ -497,6 +531,183 @@ function showToast(msg,err){
   t.style.borderLeftColor=err?'var(--red)':'var(--gold)';
   t.className='toast show';
   setTimeout(()=>t.className='toast',3200);
+}
+
+
+// ── CLASSES ──
+let editClassId = null;
+const DAYS = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ Nhật'];
+
+function addScheduleRow(day, timeStart, timeEnd) {
+  const list = document.getElementById('cl-schedule-list');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  div.innerHTML = `
+    <select class="rev-month-select cl-day" style="flex:1">
+      ${DAYS.map(d=>`<option${d===(day||'')?' selected':''}>${d}</option>`).join('')}
+    </select>
+    <input type="time" class="search-box cl-time-start" value="${timeStart||''}" style="flex:1;padding:8px 10px;" placeholder="Giờ bắt đầu">
+    <input type="time" class="search-box cl-time-end" value="${timeEnd||''}" style="flex:1;padding:8px 10px;" placeholder="Giờ kết thúc">
+    <button type="button" class="btn-icon del" onclick="this.parentElement.remove()" title="Xóa">✕</button>`;
+  list.appendChild(div);
+}
+
+function getScheduleRows() {
+  const rows = [];
+  document.querySelectorAll('#cl-schedule-list > div').forEach(div => {
+    const day   = div.querySelector('.cl-day').value;
+    const start = div.querySelector('.cl-time-start').value;
+    const end   = div.querySelector('.cl-time-end').value;
+    if (day) rows.push({day, start, end});
+  });
+  return rows;
+}
+
+function saveClass() {
+  const g = id => document.getElementById(id).value.trim();
+  const code = g('cl-code'), name = g('cl-name'), subject = g('cl-subject'),
+        teacher = g('cl-teacher'), room = g('cl-room'), note = g('cl-note');
+  if (!code || !name || !subject) { showToast('Vui lòng điền Mã Lớp, Tên Lớp và Khóa Học (*)', true); return; }
+  if (classes.find(c => c.code === code && c.id !== editClassId)) { showToast('Mã lớp đã tồn tại!', true); return; }
+  const schedule = getScheduleRows();
+  const obj = { id: editClassId || Date.now(), code, name, subject, teacher, room, note, schedule };
+  if (editClassId !== null) {
+    const i = classes.findIndex(c => c.id === editClassId);
+    if (i !== -1) classes[i] = obj;
+    editClassId = null;
+  } else classes.push(obj);
+  save(); showToast('Đã lưu lớp thành công!'); clearClassForm(); showPage('classes');
+}
+
+function clearClassForm() {
+  ['cl-code','cl-name','cl-teacher','cl-room','cl-note'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cl-subject').value = '';
+  document.getElementById('cl-schedule-list').innerHTML = '';
+  editClassId = null;
+  document.getElementById('class-form-title').innerHTML = 'Thêm <span>Lớp Học</span>';
+}
+
+function editClass(id) {
+  const c = classes.find(x => x.id === id); if (!c) return;
+  editClassId = id;
+  document.getElementById('cl-code').value    = c.code;
+  document.getElementById('cl-name').value    = c.name;
+  document.getElementById('cl-subject').value = c.subject;
+  document.getElementById('cl-teacher').value = c.teacher || '';
+  document.getElementById('cl-room').value    = c.room || '';
+  document.getElementById('cl-note').value    = c.note || '';
+  document.getElementById('cl-schedule-list').innerHTML = '';
+  (c.schedule || []).forEach(s => addScheduleRow(s.day, s.start, s.end));
+  document.getElementById('class-form-title').innerHTML = 'Chỉnh Sửa <span>Lớp Học</span>';
+  showPage('add-class');
+}
+
+function deleteClass(id) {
+  const c = classes.find(x => x.id === id); if (!c) return;
+  confirmDelete(c.name, () => {
+    classes = classes.filter(x => x.id !== id);
+    save(); renderClassTable(); renderDashboard();
+    showToast('Đã xóa lớp ' + c.name + '.');
+  });
+}
+
+function renderClassTable() {
+  const q = (document.getElementById('class-search').value || '').toLowerCase();
+  const filtered = classes.filter(c =>
+    !q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.subject.toLowerCase().includes(q)
+  );
+  const tbody = document.getElementById('class-table-body');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏫</div><div class="empty-text">Chưa có lớp nào</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map((c, i) => {
+    const hvCount = students.filter(s => s.classid === c.id).length;
+    const sched = (c.schedule || []).map(s => `${s.day} ${s.start}–${s.end}`).join('<br>') || '–';
+    return `<tr>
+      <td>${i+1}</td>
+      <td><span class="pos-badge">${c.code}</span></td>
+      <td class="td-name">${c.name}</td>
+      <td style="color:var(--navy);font-weight:600">${c.subject}</td>
+      <td style="font-size:11.5px">${c.teacher||'–'}</td>
+      <td style="font-size:11px;color:var(--muted)">${sched}</td>
+      <td style="font-size:11.5px">${c.room||'–'}</td>
+      <td style="font-weight:700;color:var(--navy)">${hvCount}</td>
+      <td><div class="action-btns">
+        <button class="btn-icon" onclick="editClass(${c.id})" title="Sửa">✎</button>
+        <button class="btn-icon del" onclick="deleteClass(${c.id})" title="Xóa">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SCHEDULE / TKB ──
+function renderSchedule() {
+  const filterSubj = document.getElementById('tkb-filter-subject').value;
+  const filteredClasses = filterSubj === 'all' ? classes : classes.filter(c => c.subject === filterSubj);
+
+  // Build grid: rows = giờ slot, cols = thứ
+  const dayOrder = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ Nhật'];
+
+  // Collect all time slots
+  const slots = new Set();
+  filteredClasses.forEach(c => (c.schedule||[]).forEach(s => {
+    if (s.start) slots.add(s.start);
+  }));
+  const sortedSlots = [...slots].sort();
+
+  if (!filteredClasses.length || !sortedSlots.length) {
+    document.getElementById('schedule-grid').innerHTML =
+      '<div class="empty-state" style="padding:60px 0"><div class="empty-icon">📅</div><div class="empty-text">Chưa có lịch học nào. Hãy tạo lớp và thêm buổi học.</div></div>';
+    return;
+  }
+
+  // Build lookup: day -> timeStart -> [{class, students}]
+  const lookup = {};
+  dayOrder.forEach(d => { lookup[d] = {}; });
+  filteredClasses.forEach(c => {
+    const classStudents = students.filter(s => s.classid === c.id);
+    (c.schedule||[]).forEach(s => {
+      if (!s.day || !s.start) return;
+      if (!lookup[s.day]) lookup[s.day] = {};
+      if (!lookup[s.day][s.start]) lookup[s.day][s.start] = [];
+      lookup[s.day][s.start].push({ cls: c, studs: classStudents, end: s.end });
+    });
+  });
+
+  let html = `<div class="table-wrap"><table style="min-width:900px;">
+    <thead><tr><th style="width:90px">Giờ</th>${dayOrder.map(d=>`<th>${d}</th>`).join('')}</tr></thead>
+    <tbody>`;
+
+  sortedSlots.forEach(slot => {
+    html += `<tr><td style="font-weight:700;color:var(--navy);font-size:12px;white-space:nowrap">${slot}</td>`;
+    dayOrder.forEach(day => {
+      const entries = (lookup[day] && lookup[day][slot]) || [];
+      if (!entries.length) {
+        html += `<td style="background:rgba(251,237,211,.2);min-width:120px"></td>`;
+      } else {
+        html += `<td style="padding:6px;vertical-align:top;min-width:120px">`;
+        entries.forEach(e => {
+          const endStr = e.end ? `–${e.end}` : '';
+          const studsHtml = e.studs.length
+            ? e.studs.map(s=>`<div style="font-size:10px;color:var(--ink);padding:1px 0;border-top:1px solid var(--cream2)">${s.name}</div>`).join('')
+            : `<div style="font-size:10px;color:var(--muted);font-style:italic">Chưa có HV</div>`;
+          html += `<div style="background:var(--navy);border-radius:8px;padding:7px 9px;margin-bottom:5px;">
+            <div style="font-size:10px;font-weight:800;color:var(--gold);letter-spacing:.5px">[${e.cls.code}] ${e.cls.name}</div>
+            <div style="font-size:10px;color:rgba(251,237,211,.7);margin-bottom:4px">${slot}${endStr} · ${e.cls.subject}</div>
+            ${e.cls.teacher?`<div style="font-size:10px;color:rgba(251,237,211,.5)">GV: ${e.cls.teacher}</div>`:''}
+            ${studsHtml}
+          </div>`;
+        });
+        html += `</td>`;
+      }
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('schedule-grid').innerHTML = html;
 }
 
 // ── INIT ──
