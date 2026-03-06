@@ -419,3 +419,8 @@ input::placeholder{color:var(--muted2);font-weight:400;}
 /* Decorative horizontal rule in cards */
 .card-divider{height:1px;background:var(--cream2);margin:14px 0;}
 </style>
+
+/* ── TKB / SCHEDULE ── */
+#schedule-grid table td { padding: 6px 8px; border-bottom: 1px solid var(--cream2); vertical-align: top; }
+#schedule-grid table th { background: var(--navy); color: rgba(251,237,211,.8); border-bottom: 2px solid var(--gold); text-align: center; }
+#schedule-grid table tr:hover td { background: rgba(246,153,34,.04); }
