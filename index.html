@@ -27,6 +27,8 @@
     <div class="nav-section">
       <div class="nav-label">Khóa Học</div>
       <div class="nav-item" onclick="showPage('courses')"><span class="nav-icon">♪</span> Các Khóa Học</div>
+      <div class="nav-item" onclick="showPage('courses');openCourse('pianodemhat')"><span class="nav-icon">🎹🎤</span> Piano Đệm Hát</div>
+      <div class="nav-item" onclick="showPage('courses');openCourse('trong')"><span class="nav-icon">🥁</span> Trống</div>
     </div>
     <div class="nav-section">
       <div class="nav-label">Học Viên</div>
@@ -196,9 +198,9 @@
     <button class="filter-tab" onclick="setStudentFilter('Tiền Mặt',this)">Tiền Mặt</button>
     <button class="filter-tab" onclick="setStudentFilter('Chưa Thanh Toán',this)">Chưa Thanh Toán</button>
   </div>
-  <div class="filter-tabs" id="filter-subject-tabs" style="margin-top:-4px;">
+  <div class="filter-tabs" id="filter-subject-tabs" style="margin-top:-4px;flex-wrap:wrap;">
     <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;flex-shrink:0;">Khóa:</span>
-    <div id="subject-filter-btns" style="display:contents"></div>
+    <div id="subject-filter-btns" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;"></div>
   </div>
   <div class="filter-tabs" id="filter-class-tabs" style="margin-top:-4px;">
     <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;">Lớp:</span>
@@ -559,6 +561,8 @@
       <option>Ballet (3-5 tuổi)</option><option>Ballet (6-9 tuổi)</option>
       <option>Khiêu Vũ</option><option>Múa Cổ Trang</option><option>Thanh Nhạc</option>
       <option>Cảm Thụ Âm Nhạc</option>
+      <option>Piano Đệm Hát</option>
+      <option>Trống</option>
     </select>
   </div>
   <div id="schedule-grid"></div>
