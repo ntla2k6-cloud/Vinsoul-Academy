@@ -31,6 +31,8 @@ const STATIC_COURSES = [
   {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
   {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
   {name:'Trống',      emoji:'🥁', match:'Trống'},
+  {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
+  {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
 ];
 
 // ── HELPERS ──
@@ -238,13 +240,12 @@ function renderSubjectFilterBtns() {
   customCourses.forEach(c => {
     if (!staticNames.has(c.name)) allTabs.push({name: c.name, emoji: c.emoji||'📚', match: c.name});
   });
-  wrap.innerHTML = allTabs.map(c => {
+  const allBtn = `<button class="filter-tab${studentSubjectFilter==='all'?' active':''}" onclick="setStudentSubjectFilter('all',this)">Tất Cả</button>`;
+  const tabBtns = allTabs.map(c => {
     const active = (studentSubjectFilter === c.match || studentSubjectFilter === c.name) ? ' active' : '';
     return `<button class="filter-tab${active}" onclick="setStudentSubjectFilter('${c.match}',this)">${c.emoji} ${c.name}</button>`;
   }).join('');
-  // Tất Cả button ở đầu
-  const allBtn = `<button class="filter-tab${studentSubjectFilter==='all'?' active':''}" onclick="setStudentSubjectFilter('all',this)">Tất Cả</button>`;
-  wrap.innerHTML = allBtn + wrap.innerHTML;
+  wrap.innerHTML = allBtn + tabBtns;
 }
 
 function closeCourse(){document.getElementById('course-modal').classList.remove('open');}
@@ -942,13 +943,10 @@ function renderCoursesPage() {
 }
 
 function syncCourseSelects() {
-  const customOpts = customCourses.map(c => `<option>${c.name}</option>`).join('');
   ['f-subject','cl-subject','lf-course','tkb-filter-subject'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
-    // remove old custom options
     [...sel.querySelectorAll('option.custom-opt')].forEach(o => o.remove());
-    // add new
     customCourses.forEach(c => {
       const o = document.createElement('option');
       o.textContent = c.name;
@@ -962,3 +960,4 @@ function syncCourseSelects() {
 initRevSelectors();
 renderDashboard();
 renderCoursesPage();
+renderSubjectFilterBtns();
