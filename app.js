@@ -681,22 +681,22 @@ function renderSchedule() {
     <tbody>`;
 
   sortedSlots.forEach(slot => {
-    html += `<tr><td style="font-weight:700;color:var(--navy);font-size:12px;white-space:nowrap">${slot}</td>`;
+    html += `<tr><td class="tkb-time-cell">${slot}</td>`;
     dayOrder.forEach(day => {
       const entries = (lookup[day] && lookup[day][slot]) || [];
       if (!entries.length) {
-        html += `<td style="background:rgba(251,237,211,.2);min-width:120px"></td>`;
+        html += `<td style="background:rgba(251,237,211,.15)"></td>`;
       } else {
-        html += `<td style="padding:6px;vertical-align:top;min-width:120px">`;
+        html += `<td>`;
         entries.forEach(e => {
           const endStr = e.end ? `–${e.end}` : '';
           const studsHtml = e.studs.length
-            ? e.studs.map(s=>`<div style="font-size:10px;color:var(--ink);padding:1px 0;border-top:1px solid var(--cream2)">${s.name}</div>`).join('')
-            : `<div style="font-size:10px;color:var(--muted);font-style:italic">Chưa có HV</div>`;
-          html += `<div style="background:var(--navy);border-radius:8px;padding:7px 9px;margin-bottom:5px;">
-            <div style="font-size:10px;font-weight:800;color:var(--gold);letter-spacing:.5px">[${e.cls.code}] ${e.cls.name}</div>
-            <div style="font-size:10px;color:rgba(251,237,211,.7);margin-bottom:4px">${slot}${endStr} · ${e.cls.subject}</div>
-            ${e.cls.teacher?`<div style="font-size:10px;color:rgba(251,237,211,.5)">GV: ${e.cls.teacher}</div>`:''}
+            ? e.studs.map(s=>`<div class="tkb-cell-student">👤 ${s.name}</div>`).join('')
+            : `<div class="tkb-empty">Chưa có HV</div>`;
+          html += `<div class="tkb-cell">
+            <div class="tkb-cell-code">[${e.cls.code}] ${e.cls.name}</div>
+            <div class="tkb-cell-info">🕐 ${slot}${endStr} · ${e.cls.subject}</div>
+            ${e.cls.teacher?`<div class="tkb-cell-teacher">👩‍🏫 ${e.cls.teacher}</div>`:''}
             ${studsHtml}
           </div>`;
         });
