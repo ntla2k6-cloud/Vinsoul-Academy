@@ -14,7 +14,7 @@
   <div class="logo-area">
     <div class="logo-icon">🎵</div>
     <div>
-      <div class="logo-title">VINSOUL</div>
+      <div class="logo-title">VINX`SOUL</div>
       <div class="logo-sub">Âm Nhạc & Nghệ Thuật</div>
     </div>
   </div>
@@ -32,6 +32,12 @@
       <div class="nav-label">Học Viên</div>
       <div class="nav-item" onclick="showPage('students')"><span class="nav-icon">◉</span> Danh Sách HV</div>
       <div class="nav-item" onclick="startAddStudent()"><span class="nav-icon">＋</span> Thêm Học Viên</div>
+      <div class="nav-item" onclick="showPage('classes')"><span class="nav-icon">🏫</span> Quản Lý Lớp</div>
+      <div class="nav-item" onclick="startAddClass()"><span class="nav-icon">＋</span> Thêm Lớp</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Thời Khóa Biểu</div>
+      <div class="nav-item" onclick="showPage('schedule')"><span class="nav-icon">📅</span> TKB Tổng Hợp</div>
     </div>
     <div class="nav-section">
       <div class="nav-label">Nhân Sự</div>
@@ -162,6 +168,7 @@
     <div class="course-card" onclick="openCourse('thanhnhac')"><span class="course-emoji">🎤</span><div class="course-name">Thanh Nhạc</div><div class="course-count">6 gói học phí</div></div>
     <div class="course-card" onclick="openCourse('luyen-thi')"><span class="course-emoji">🏆</span><div class="course-name">Luyện Thi Quốc Tế</div><div class="course-count">Guitar · Violin · Piano · Vẽ</div></div>
     <div class="course-card" onclick="openCourse('hocthu')"><span class="course-emoji">⭐</span><div class="course-name">Học Thử</div><div class="course-count">3 loại</div></div>
+    <div class="course-card" onclick="openCourse('camthu')"><span class="course-emoji">🎼</span><div class="course-name">Cảm Thụ Âm Nhạc</div><div class="course-count">Miễn phí · 24 buổi</div></div>
   </div>
 </div>
 
@@ -174,6 +181,7 @@
   <div class="toolbar">
     <input class="search-box" id="search-input" type="text" placeholder="🔍  Tìm theo tên, SĐT, môn học..." oninput="renderStudentTable()">
     <button class="btn btn-gold" onclick="startAddStudent()">+ Thêm Học Viên</button>
+    <button class="btn btn-navy" onclick="startAddClass()" style="background:var(--navy)">🏫 Thêm Lớp</button>
     <button class="btn btn-outline" onclick="exportExcel('students')" title="Xuất ra file Excel">📊 Xuất Excel</button>
   </div>
   <div class="filter-tabs" id="filter-payment-tabs">
@@ -197,10 +205,14 @@
     <button class="filter-tab" onclick="setStudentSubjectFilter('Thanh Nhạc',this)">🎤 Thanh Nhạc</button>
     <button class="filter-tab" onclick="setStudentSubjectFilter('Luyện Thi',this)">🏆 Luyện Thi</button>
   </div>
+  <div class="filter-tabs" id="filter-class-tabs" style="margin-top:-4px;">
+    <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;">Lớp:</span>
+    <div id="class-filter-btns" style="display:contents"></div>
+  </div>
   <div class="card">
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th><th>SĐT</th><th>Khóa Học</th><th>Thời Gian</th><th>Học Phí</th><th>Số Tiền</th><th>Thao Tác</th></tr></thead>
+        <thead><tr><th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th><th>SĐT</th><th>Khóa Học</th><th>Tên Lớp</th><th>Thời Gian</th><th>Học Phí</th><th>Số Tiền</th><th>Thao Tác</th></tr></thead>
         <tbody id="student-table-body"></tbody>
       </table>
     </div>
@@ -231,11 +243,17 @@
           <option>Thanh Nhạc</option>
           <option>Luyện Thi - Piano</option><option>Luyện Thi - Guitar</option>
           <option>Luyện Thi - Violin</option><option>Luyện Thi - Vẽ</option>
+          <option>Cảm Thụ Âm Nhạc</option>
         </select>
       </div>
       <div class="form-group"><label>Gói / Loại Lớp</label>
         <select id="f-package">
           <option value="">-- Chọn khóa học trước --</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Tên Lớp / Mã Lớp</label>
+        <select id="f-classid" onchange="onClassSelect()">
+          <option value="">-- Chọn lớp (nếu có) --</option>
         </select>
       </div>
       <div class="form-group"><label>Ngày Bắt Đầu *</label><input id="f-start" type="date"></div>
@@ -461,6 +479,87 @@
       <button class="btn btn-outline" onclick="showPage('leads')">← Quay Lại</button>
     </div>
   </div>
+</div>
+
+
+<!-- ─── CLASSES LIST ─── -->
+<div id="page-classes" class="page">
+  <div class="page-header">
+    <div class="page-title">Quản Lý <span>Lớp Học</span></div>
+    <div class="page-sub">Tạo và quản lý các lớp theo mã lớp</div>
+  </div>
+  <div class="toolbar">
+    <input class="search-box" id="class-search" type="text" placeholder="🔍  Tìm theo mã lớp, tên lớp, khóa học..." oninput="renderClassTable()">
+    <button class="btn btn-gold" onclick="startAddClass()">+ Thêm Lớp</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Mã Lớp</th><th>Tên Lớp</th><th>Khóa Học</th><th>Giáo Viên</th><th>Thứ / Giờ Học</th><th>Phòng</th><th>Số HV</th><th>Thao Tác</th></tr></thead>
+        <tbody id="class-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ADD/EDIT CLASS ─── -->
+<div id="page-add-class" class="page">
+  <div class="page-header">
+    <div class="page-title" id="class-form-title">Thêm <span>Lớp Học</span></div>
+    <div class="page-sub">Tạo lớp theo mã lớp do admin nhập</div>
+  </div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-group"><label>Mã Lớp *</label><input id="cl-code" type="text" placeholder="VD: PIANO-A1, GT-B2..."></div>
+      <div class="form-group"><label>Tên Lớp *</label><input id="cl-name" type="text" placeholder="VD: Lớp Piano Cơ Bản A1"></div>
+      <div class="form-group"><label>Khóa Học *</label>
+        <select id="cl-subject">
+          <option value="">-- Chọn khóa học --</option>
+          <option>Piano</option><option>Guitar</option><option>Violin</option><option>Ukulele</option>
+          <option>Vẽ Mầm Non</option><option>Vẽ Căn Bản</option>
+          <option>Vẽ - Ký Họa / Màu Nước / Màu Marker</option>
+          <option>Vẽ - Màu Acrylic Canvas / Digital Art</option>
+          <option>Ballet (3-5 tuổi)</option><option>Ballet (6-9 tuổi)</option>
+          <option>Dance</option><option>Khiêu Vũ</option><option>Múa Cổ Trang</option>
+          <option>Thanh Nhạc</option>
+          <option>Luyện Thi - Piano</option><option>Luyện Thi - Guitar</option>
+          <option>Luyện Thi - Violin</option><option>Luyện Thi - Vẽ</option>
+          <option>Cảm Thụ Âm Nhạc</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Giáo Viên</label><input id="cl-teacher" type="text" placeholder="Tên giáo viên phụ trách"></div>
+      <div class="form-group"><label>Phòng Học</label><input id="cl-room" type="text" placeholder="VD: Phòng 1, Phòng 2..."></div>
+      <div class="form-group"><label>Ghi Chú</label><input id="cl-note" type="text" placeholder="Ghi chú thêm..."></div>
+      <div class="form-group full"><label>Lịch Học (Thứ + Giờ)</label>
+        <div id="cl-schedule-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+        <button type="button" class="btn btn-outline" onclick="addScheduleRow()" style="width:fit-content;font-size:11px;">+ Thêm buổi học</button>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-gold" onclick="saveClass()">💾 Lưu Lớp</button>
+      <button class="btn btn-outline" onclick="clearClassForm()">↺ Xóa Trắng</button>
+      <button class="btn btn-outline" onclick="showPage('classes')">← Quay Lại</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SCHEDULE (TKB TỔNG HỢP) ─── -->
+<div id="page-schedule" class="page">
+  <div class="page-header">
+    <div class="page-title">Thời Khóa Biểu <span>Tổng Hợp</span></div>
+    <div class="page-sub">Lịch học tất cả các khóa – bấm ô để xem chi tiết học viên</div>
+  </div>
+  <div class="toolbar" style="margin-bottom:12px;">
+    <select class="rev-month-select" id="tkb-filter-subject" onchange="renderSchedule()">
+      <option value="all">Tất cả khóa học</option>
+      <option>Piano</option><option>Guitar</option><option>Violin</option><option>Ukulele</option>
+      <option>Vẽ Mầm Non</option><option>Vẽ Căn Bản</option><option>Dance</option>
+      <option>Ballet (3-5 tuổi)</option><option>Ballet (6-9 tuổi)</option>
+      <option>Khiêu Vũ</option><option>Múa Cổ Trang</option><option>Thanh Nhạc</option>
+      <option>Cảm Thụ Âm Nhạc</option>
+    </select>
+  </div>
+  <div id="schedule-grid"></div>
 </div>
 
 </main>
