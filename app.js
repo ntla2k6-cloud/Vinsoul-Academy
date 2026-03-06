@@ -1,6 +1,8 @@
 // ── STATE ──
 let students      = JSON.parse(localStorage.getItem('vs_students') || '[]');
 let classes       = JSON.parse(localStorage.getItem('vs_classes')   || '[]');
+let customCourses = JSON.parse(localStorage.getItem('vs_custom_courses') || '[]');
+let customPrices  = JSON.parse(localStorage.getItem('vs_custom_prices')  || '{}');
 let staff         = JSON.parse(localStorage.getItem('vs_staff')    || '[]');
 let leads         = JSON.parse(localStorage.getItem('vs_leads')    || '[]');
 let editStudentId = null;
@@ -20,6 +22,8 @@ const save    = () => {
   localStorage.setItem('vs_staff',    JSON.stringify(staff));
   localStorage.setItem('vs_leads',    JSON.stringify(leads));
   localStorage.setItem('vs_classes',   JSON.stringify(classes));
+  localStorage.setItem('vs_custom_courses', JSON.stringify(customCourses));
+  localStorage.setItem('vs_custom_prices',  JSON.stringify(customPrices));
 };
 
 // ── DELETE MODAL ──
@@ -61,21 +65,85 @@ const CD={
   thanhnhac:{name:'THANH NHẠC',emoji:'🎤',sections:[{title:'Căn Bản',rows:[{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]},
   'luyen-thi':{name:'LUYỆN THI QUỐC TẾ',emoji:'🏆',sections:[{title:'Luyện Thi – Guitar',rows:[{desc:'Luyện 3-1 · 3T/24b',amount:6000000},{desc:'Luyện 2-1 · 3T/24b',amount:8400000},{desc:'Luyện 1-1 · 3T/24b',amount:12000000},{desc:'Luyện 3-1 · 1T/8b',amount:2200000},{desc:'Luyện 2-1 · 1T/8b',amount:3000000},{desc:'Luyện 1-1 · 1T/8b',amount:4200000}]},{title:'Luyện Thi – Violin',rows:[{desc:'Luyện 3-1 · 3T/24b',amount:6000000},{desc:'Luyện 2-1 · 3T/24b',amount:8400000},{desc:'Luyện 1-1 · 3T/24b',amount:12000000}]},{title:'Luyện Thi – Piano',rows:[{desc:'Luyện 3-1 · 3T/24b',amount:6000000},{desc:'Luyện 2-1 · 3T/24b',amount:8400000},{desc:'Luyện 1-1 · 3T/24b',amount:12000000}]},{title:'Luyện Thi – Vẽ',rows:[{desc:'Lớp nhóm · 3T/24b',amount:7200000},{desc:'Lớp nhóm · 1T/8b',amount:2600000},{desc:'Đóng 2 lần · 3T/24b',amount:3600000}]}]},
   hocthu:{name:'HỌC THỬ',emoji:'⭐',sections:[{title:'Các Loại Học Thử',rows:[{desc:'Học thử lớp nhóm',amount:100000},{desc:'Học thử 2-1',amount:250000},{desc:'Học thử 1-1',amount:500000}]}]},
-  camthu:{name:'CẢM THỤ ÂM NHẠC',emoji:'🎼',sections:[{title:'Cảm Thụ Âm Nhạc Miễn Phí',rows:[{desc:'Lớp nhóm · 24 buổi · Miễn phí',amount:0}]}]}
+  camthu:{name:'CẢM THỤ ÂM NHẠC',emoji:'🎼',sections:[{title:'Cảm Thụ Âm Nhạc Miễn Phí',rows:[{desc:'Lớp nhóm · 24 buổi · Miễn phí',amount:0}]}]},
+  pianodemhat:{name:'PIANO ĐỆM HÁT',emoji:'🎹🎤',sections:[{title:'Lớp Thông Thường',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:5400000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 3-1 · 1 tháng/8 buổi',amount:2000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:2700000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]},
+  trong:{name:'TRỐNG',emoji:'🥁',sections:[{title:'Lớp Thông Thường',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:5400000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 3-1 · 1 tháng/8 buổi',amount:2000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:2700000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]}
 };
 
+function getAllCourses() {
+  // Merge static CD + customCourses
+  const all = {...CD};
+  customCourses.forEach(c => { all[c.key] = c; });
+  return all;
+}
+
 function openCourse(key){
-  const c=CD[key];
-  document.getElementById('modal-emoji').textContent=c.emoji;
-  document.getElementById('modal-title').textContent=c.name;
-  let html='';
-  c.sections.forEach(s=>{
+  const allC = getAllCourses();
+  const c = allC[key];
+  if (!c) return;
+  document.getElementById('modal-emoji').textContent = c.emoji;
+  document.getElementById('modal-title').textContent = c.name;
+  renderCourseModalContent(key, c);
+  document.getElementById('course-modal').classList.add('open');
+}
+
+function renderCourseModalContent(key, c) {
+  const prices = customPrices[key] || {};
+  let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" onclick="toggleCourseEdit('${key}')">✏️ Chỉnh Sửa Học Phí</button>
+  </div>`;
+  c.sections.forEach((s,si)=>{
     html+=`<div class="price-section"><div class="price-section-title">${s.title}</div>`;
-    s.rows.forEach(r=>html+=`<div class="price-row"><div class="price-desc">${r.desc}</div><div class="price-amount">${fmt(r.amount)}</div></div>`);
+    s.rows.forEach((r,ri)=>{
+      const priceKey = si+'_'+ri;
+      const curAmount = prices[priceKey] !== undefined ? prices[priceKey] : r.amount;
+      html+=`<div class="price-row">
+        <div class="price-desc">${r.desc}</div>
+        <div class="price-amount" id="pa_${key}_${priceKey}">${curAmount===0?'Miễn phí':fmt(curAmount)}</div>
+        <input type="number" class="price-edit-input" id="pi_${key}_${priceKey}" value="${curAmount}" style="display:none;width:130px;padding:5px 8px;border:1.5px solid var(--gold);border-radius:8px;font-size:12px;font-weight:700;color:var(--navy);background:var(--cream);text-align:right;" min="0">
+      </div>`;
+    });
     html+='</div>';
   });
-  document.getElementById('modal-content').innerHTML=html;
-  document.getElementById('course-modal').classList.add('open');
+  html+=`<div id="course-edit-actions" style="display:none;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--cream2);display:none;gap:9px;" class="form-actions">
+    <button class="btn btn-gold" onclick="saveCourseEdit('${key}')">💾 Lưu Học Phí</button>
+    <button class="btn btn-outline" onclick="resetCourseEdit('${key}')">↺ Khôi Phục Mặc Định</button>
+  </div>`;
+  document.getElementById('modal-content').innerHTML = html;
+}
+
+function toggleCourseEdit(key) {
+  const inputs = document.querySelectorAll(`[id^="pi_${key}_"]`);
+  const amounts = document.querySelectorAll(`[id^="pa_${key}_"]`);
+  const actions = document.getElementById('course-edit-actions');
+  const isEditing = inputs[0] && inputs[0].style.display !== 'none';
+  inputs.forEach(el => el.style.display = isEditing ? 'none' : 'inline-block');
+  amounts.forEach(el => el.style.display = isEditing ? '' : 'none');
+  if (actions) actions.style.display = isEditing ? 'none' : 'flex';
+}
+
+function saveCourseEdit(key) {
+  const allC = getAllCourses();
+  const c = allC[key];
+  if (!c) return;
+  if (!customPrices[key]) customPrices[key] = {};
+  c.sections.forEach((s,si) => {
+    s.rows.forEach((r,ri) => {
+      const priceKey = si+'_'+ri;
+      const input = document.getElementById(`pi_${key}_${priceKey}`);
+      if (input) customPrices[key][priceKey] = Number(input.value) || 0;
+    });
+  });
+  save();
+  renderCourseModalContent(key, c);
+  showToast('Đã lưu học phí!');
+}
+
+function resetCourseEdit(key) {
+  if (customPrices[key]) { delete customPrices[key]; save(); }
+  const allC = getAllCourses();
+  renderCourseModalContent(key, allC[key]);
+  showToast('Đã khôi phục học phí mặc định!');
 }
 
 // ── PACKAGE OPTIONS PER COURSE ──
@@ -99,6 +167,8 @@ const COURSE_PACKAGES = {
   'Luyện Thi - Violin':                 ['Luyện 3-1 · 3 tháng/24 buổi','Luyện 2-1 · 3 tháng/24 buổi','Luyện 1-1 · 3 tháng/24 buổi'],
   'Luyện Thi - Vẽ':                     ['Lớp nhóm · 3 tháng/24 buổi','Lớp nhóm · 1 tháng/8 buổi','Đóng 2 lần · 3 tháng/24 buổi'],
   'Cảm Thụ Âm Nhạc':                   ['Miễn Phí · 24 buổi'],
+  'Piano Đệm Hát':                      ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Trống':                               ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
 };
 
 function populatePackages(selectedPkg) {
@@ -710,6 +780,146 @@ function renderSchedule() {
   document.getElementById('schedule-grid').innerHTML = html;
 }
 
+
+// ── CUSTOM COURSES CRUD ──
+let editCustomCourseKey = null;
+
+function startAddCourse() {
+  editCustomCourseKey = null;
+  document.getElementById('cc-key').value = '';
+  document.getElementById('cc-name').value = '';
+  document.getElementById('cc-emoji').value = '';
+  document.getElementById('cc-rows-wrap').innerHTML = '';
+  addCustomCourseRow();
+  document.getElementById('custom-course-modal').classList.add('open');
+}
+
+function editCustomCourse(key) {
+  const c = customCourses.find(x => x.key === key);
+  if (!c) return;
+  editCustomCourseKey = key;
+  document.getElementById('cc-key').value = key;
+  document.getElementById('cc-name').value = c.name;
+  document.getElementById('cc-emoji').value = c.emoji || '';
+  const wrap = document.getElementById('cc-rows-wrap');
+  wrap.innerHTML = '';
+  (c.sections||[]).forEach(sec => {
+    (sec.rows||[]).forEach(r => addCustomCourseRow(sec.title, r.desc, r.amount));
+  });
+  document.getElementById('custom-course-modal').classList.add('open');
+}
+
+function deleteCustomCourse(key) {
+  const c = customCourses.find(x => x.key === key);
+  if (!c) return;
+  confirmDelete(c.name, () => {
+    customCourses = customCourses.filter(x => x.key !== key);
+    if (customPrices[key]) delete customPrices[key];
+    save(); renderCoursesPage(); showToast('Đã xóa khóa học ' + c.name);
+  });
+}
+
+function addCustomCourseRow(section, desc, amount) {
+  const wrap = document.getElementById('cc-rows-wrap');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 2fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;';
+  div.innerHTML = `
+    <input type="text" class="search-box cc-section" placeholder="Tên nhóm gói" value="${section||''}" style="padding:8px 10px;font-size:12px;">
+    <input type="text" class="search-box cc-desc" placeholder="Mô tả gói học" value="${desc||''}" style="padding:8px 10px;font-size:12px;">
+    <input type="number" class="search-box cc-amount" placeholder="Học phí (đ)" value="${amount||0}" min="0" style="padding:8px 10px;font-size:12px;">
+    <button type="button" class="btn-icon del" onclick="this.parentElement.remove()" title="Xóa">✕</button>`;
+  wrap.appendChild(div);
+}
+
+function saveCustomCourse() {
+  const key = document.getElementById('cc-key').value.trim().replace(/\s+/g,'_').toLowerCase();
+  const name = document.getElementById('cc-name').value.trim();
+  const emoji = document.getElementById('cc-emoji').value.trim() || '📚';
+  if (!key || !name) { showToast('Vui lòng điền Mã khóa và Tên khóa học!', true); return; }
+  if (!editCustomCourseKey && (CD[key] || customCourses.find(c=>c.key===key))) {
+    showToast('Mã khóa học đã tồn tại!', true); return;
+  }
+  // Build sections from rows
+  const rows = document.querySelectorAll('#cc-rows-wrap > div');
+  const sectMap = {};
+  rows.forEach(div => {
+    const sec = div.querySelector('.cc-section').value.trim() || 'Học Phí';
+    const desc = div.querySelector('.cc-desc').value.trim();
+    const amount = Number(div.querySelector('.cc-amount').value) || 0;
+    if (!desc) return;
+    if (!sectMap[sec]) sectMap[sec] = [];
+    sectMap[sec].push({desc, amount});
+  });
+  const sections = Object.entries(sectMap).map(([title, rows]) => ({title, rows}));
+  if (!sections.length) { showToast('Vui lòng thêm ít nhất 1 gói học phí!', true); return; }
+  const obj = {key, name, emoji, sections};
+  // packages
+  const pkgList = [];
+  sections.forEach(s => s.rows.forEach(r => pkgList.push(r.desc)));
+  if (editCustomCourseKey) {
+    const i = customCourses.findIndex(c => c.key === editCustomCourseKey);
+    if (i !== -1) customCourses[i] = obj;
+  } else {
+    customCourses.push(obj);
+  }
+  // update COURSE_PACKAGES dynamically
+  COURSE_PACKAGES[name] = pkgList;
+  save(); closeCustomCourseModal(); renderCoursesPage();
+  showToast('Đã lưu khóa học ' + name + '!');
+}
+
+function closeCustomCourseModal() {
+  document.getElementById('custom-course-modal').classList.remove('open');
+  editCustomCourseKey = null;
+}
+
+function renderCoursesPage() {
+  // Re-render course cards including custom ones
+  const grid = document.getElementById('courses-grid');
+  if (!grid) return;
+  // static cards are already in HTML, just append/re-render custom ones
+  let customHtml = '';
+  customCourses.forEach(c => {
+    const totalPkg = c.sections ? c.sections.reduce((a,s)=>a+s.rows.length,0) : 0;
+    customHtml += `<div class="course-card" onclick="openCourse('${c.key}')">
+      <span class="course-emoji">${c.emoji||'📚'}</span>
+      <div class="course-name">${c.name}</div>
+      <div class="course-count">${totalPkg} gói học phí</div>
+      <div style="display:flex;gap:5px;margin-top:8px;">
+        <button class="btn-icon" onclick="event.stopPropagation();editCustomCourse('${c.key}')" title="Sửa">✎</button>
+        <button class="btn-icon del" onclick="event.stopPropagation();deleteCustomCourse('${c.key}')" title="Xóa">✕</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('custom-courses-container').innerHTML = customHtml;
+  // Sync COURSE_PACKAGES for all custom
+  customCourses.forEach(c => {
+    const pkgList = [];
+    (c.sections||[]).forEach(s => s.rows.forEach(r => pkgList.push(r.desc)));
+    COURSE_PACKAGES[c.name] = pkgList;
+  });
+  // Sync f-subject selects
+  syncCourseSelects();
+}
+
+function syncCourseSelects() {
+  const customOpts = customCourses.map(c => `<option>${c.name}</option>`).join('');
+  ['f-subject','cl-subject','lf-course','tkb-filter-subject'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    // remove old custom options
+    [...sel.querySelectorAll('option.custom-opt')].forEach(o => o.remove());
+    // add new
+    customCourses.forEach(c => {
+      const o = document.createElement('option');
+      o.textContent = c.name;
+      o.className = 'custom-opt';
+      sel.appendChild(o);
+    });
+  });
+}
+
 // ── INIT ──
 initRevSelectors();
 renderDashboard();
+renderCoursesPage();
