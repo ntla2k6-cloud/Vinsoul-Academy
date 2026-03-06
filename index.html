@@ -108,7 +108,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Họ Tên</th><th>Môn Học</th><th>Học Phí</th></tr></thead>
+          <thead><tr><th>Họ Tên</th><th>Khóa Học</th><th>Học Phí</th></tr></thead>
           <tbody id="dashboard-table">
             <tr><td colspan="3"><div class="empty-state" style="padding:20px"><div class="empty-text">Chưa có học viên</div></div></td></tr>
           </tbody>
@@ -176,16 +176,31 @@
     <button class="btn btn-gold" onclick="startAddStudent()">+ Thêm Học Viên</button>
     <button class="btn btn-outline" onclick="exportExcel('students')" title="Xuất ra file Excel">📊 Xuất Excel</button>
   </div>
-  <div class="filter-tabs">
+  <div class="filter-tabs" id="filter-payment-tabs">
     <button class="filter-tab active" onclick="setStudentFilter('all',this)">Tất Cả</button>
     <button class="filter-tab" onclick="setStudentFilter('Đã Chuyển Khoản',this)">Đã Chuyển Khoản</button>
     <button class="filter-tab" onclick="setStudentFilter('Tiền Mặt',this)">Tiền Mặt</button>
     <button class="filter-tab" onclick="setStudentFilter('Chưa Thanh Toán',this)">Chưa Thanh Toán</button>
   </div>
+  <div class="filter-tabs" id="filter-subject-tabs" style="margin-top:-4px;">
+    <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;">Khóa:</span>
+    <button class="filter-tab active" onclick="setStudentSubjectFilter('all',this)">Tất Cả</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Piano',this)">🎹 Piano</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Guitar',this)">🎸 Guitar</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Violin',this)">🎻 Violin</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Ukulele',this)">🪕 Ukulele</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Vẽ',this)">🎨 Vẽ</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Ballet',this)">🩰 Ballet</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Dance',this)">💃 Dance</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Khiêu Vũ',this)">🕺 Khiêu Vũ</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Múa Cổ Trang',this)">👘 Múa Cổ Trang</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Thanh Nhạc',this)">🎤 Thanh Nhạc</button>
+    <button class="filter-tab" onclick="setStudentSubjectFilter('Luyện Thi',this)">🏆 Luyện Thi</button>
+  </div>
   <div class="card">
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th><th>SĐT</th><th>Môn Học</th><th>Thời Gian</th><th>Học Phí</th><th>Số Tiền</th><th>Thao Tác</th></tr></thead>
+        <thead><tr><th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th><th>SĐT</th><th>Khóa Học</th><th>Thời Gian</th><th>Học Phí</th><th>Số Tiền</th><th>Thao Tác</th></tr></thead>
         <tbody id="student-table-body"></tbody>
       </table>
     </div>
@@ -204,9 +219,9 @@
       <div class="form-group"><label>Ngày Tháng Năm Sinh</label><input id="f-dob" type="date"></div>
       <div class="form-group"><label>Họ và Tên Phụ Huynh (Zalo) *</label><input id="f-parent" type="text" placeholder="Nguyễn Thị B"></div>
       <div class="form-group"><label>Số Điện Thoại Phụ Huynh *</label><input id="f-phone" type="tel" placeholder="0901 234 567"></div>
-      <div class="form-group"><label>Môn Học Đang Học *</label>
-        <select id="f-subject">
-          <option value="">-- Chọn môn học --</option>
+      <div class="form-group"><label>Khóa Học *</label>
+        <select id="f-subject" onchange="populatePackages()">
+          <option value="">-- Chọn khóa học --</option>
           <option>Piano</option><option>Guitar</option><option>Violin</option><option>Ukulele</option>
           <option>Vẽ Mầm Non</option><option>Vẽ Căn Bản</option>
           <option>Vẽ - Ký Họa / Màu Nước / Màu Marker</option>
@@ -218,7 +233,11 @@
           <option>Luyện Thi - Violin</option><option>Luyện Thi - Vẽ</option>
         </select>
       </div>
-      <div class="form-group"><label>Gói / Loại Lớp</label><input id="f-package" type="text" placeholder="VD: Lớp 2-1, 3 tháng/24 buổi"></div>
+      <div class="form-group"><label>Gói / Loại Lớp</label>
+        <select id="f-package">
+          <option value="">-- Chọn khóa học trước --</option>
+        </select>
+      </div>
       <div class="form-group"><label>Ngày Bắt Đầu *</label><input id="f-start" type="date"></div>
       <div class="form-group"><label>Ngày Kết Thúc</label><input id="f-end" type="date"></div>
       <div class="form-group"><label>Trạng Thái Học Phí *</label>
