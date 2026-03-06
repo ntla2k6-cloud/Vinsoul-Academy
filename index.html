@@ -197,19 +197,8 @@
     <button class="filter-tab" onclick="setStudentFilter('Chưa Thanh Toán',this)">Chưa Thanh Toán</button>
   </div>
   <div class="filter-tabs" id="filter-subject-tabs" style="margin-top:-4px;">
-    <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;">Khóa:</span>
-    <button class="filter-tab active" onclick="setStudentSubjectFilter('all',this)">Tất Cả</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Piano',this)">🎹 Piano</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Guitar',this)">🎸 Guitar</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Violin',this)">🎻 Violin</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Ukulele',this)">🪕 Ukulele</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Vẽ',this)">🎨 Vẽ</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Ballet',this)">🩰 Ballet</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Dance',this)">💃 Dance</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Khiêu Vũ',this)">🕺 Khiêu Vũ</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Múa Cổ Trang',this)">👘 Múa Cổ Trang</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Thanh Nhạc',this)">🎤 Thanh Nhạc</button>
-    <button class="filter-tab" onclick="setStudentSubjectFilter('Luyện Thi',this)">🏆 Luyện Thi</button>
+    <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;flex-shrink:0;">Khóa:</span>
+    <div id="subject-filter-btns" style="display:contents"></div>
   </div>
   <div class="filter-tabs" id="filter-class-tabs" style="margin-top:-4px;">
     <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;">Lớp:</span>
