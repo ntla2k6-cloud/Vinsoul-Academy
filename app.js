@@ -190,6 +190,7 @@ const COURSE_PACKAGES = {
   'Cảm Thụ Âm Nhạc':                   ['Miễn Phí · 24 buổi'],
   'Piano Đệm Hát':                      ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
   'Trống':                               ['Lớp 3-1 · 3 tháng/24 buổi','Lớp 2-1 · 3 tháng/24 buổi','Lớp 1-1 · 3 tháng/24 buổi','Lớp 3-1 · 1 tháng/8 buổi','Lớp 2-1 · 1 tháng/8 buổi','Lớp 1-1 · 1 tháng/8 buổi','Đóng 2 lần – Lớp 3-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 2-1 · 3 tháng/24 buổi','Đóng 2 lần – Lớp 1-1 · 3 tháng/24 buổi'],
+  'Học Thử':                             ['Học thử lớp nhóm','Học thử lớp 2-1','Học thử lớp 1-1'],
 };
 
 function populatePackages(selectedPkg) {
@@ -296,36 +297,68 @@ function deleteStudent(id) {
     showToast('Đã xóa học viên ' + s.name + '.');
   });
 }
-function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderStudentTable();}
+function isExpiringSoon(s) {
+  if (!s.end) return false;
+  const end = new Date(s.end);
+  const now = new Date();
+  const diff = (end - now) / (1000*60*60*24);
+  return diff >= 0 && diff <= 10;
+}
+
+function renderExpiryBanner() {
+  const expiring = students.filter(s => s.subject !== 'Học Thử' && isExpiringSoon(s));
+  const banner = document.getElementById('expiry-alert-banner');
+  const list = document.getElementById('expiry-alert-list');
+  if (!banner) return;
+  if (!expiring.length) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+  list.innerHTML = expiring.map(s => {
+    const daysLeft = Math.ceil((new Date(s.end) - new Date()) / (1000*60*60*24));
+    return `<b>${s.name}</b> (${s.subject}) – còn <b style="color:#dc2626">${daysLeft} ngày</b>`;
+  }).join(' &nbsp;|&nbsp; ');
+}
+
+function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));if(el)el.classList.add('active');renderStudentTable();}
 
 function renderStudentTable(){
   renderClassFilterBtns();
   renderSubjectFilterBtns();
+  renderExpiryBanner();
   const q=(document.getElementById('search-input').value||'').toLowerCase();
   const filtered=students.filter(s=>{
     const mq=!q||s.name.toLowerCase().includes(q)||s.phone.includes(q)||s.subject.toLowerCase().includes(q)||(s.parent&&s.parent.toLowerCase().includes(q));
-    const mf=studentFilter==='all'||s.payment===studentFilter;
+    let mf=true;
+    if(studentFilter==='hoc-thu') mf=s.subject==='Học Thử';
+    else if(studentFilter==='sap-het-khoa') mf=isExpiringSoon(s)&&s.subject!=='Học Thử';
+    else if(studentFilter!=='all') mf=s.payment===studentFilter;
     const mc=studentClassFilter==='all'||s.classid===studentClassFilter;
     const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
     return mq&&mf&&ms&&mc;
   });
   const tbody=document.getElementById('student-table-body');
-  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Không tìm thấy học viên nào</div></div></td></tr>`;return;}
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Không tìm thấy học viên nào</div></div></td></tr>`;return;}
   const pb=p=>p==='Đã Chuyển Khoản'?`<span class="badge badge-paid">✓ CK</span>`:p==='Tiền Mặt'?`<span class="badge badge-cash">💵 TM</span>`:`<span class="badge badge-unpaid">⚠ Chưa TT</span>`;
-  tbody.innerHTML=filtered.map((s,i)=>`
-    <tr>
+  tbody.innerHTML=filtered.map((s,i)=>{
+    const isHocThu = s.subject==='Học Thử';
+    const expiring = isExpiringSoon(s)&&!isHocThu;
+    const rowStyle = isHocThu?'background:linear-gradient(90deg,#fefce8,#fff);':expiring?'background:linear-gradient(90deg,#fff7ed,#fff);':'';
+    const daysLeft = s.end ? Math.ceil((new Date(s.end)-new Date())/(1000*60*60*24)) : null;
+    const expiryTag = expiring&&daysLeft!==null ? `<br><span style="font-size:10px;color:#dc2626;font-weight:700">⏰ còn ${daysLeft} ngày</span>` : '';
+    const hocThuTag = isHocThu ? `<br><span style="font-size:10px;background:#fde047;color:#713f12;padding:1px 6px;border-radius:4px;font-weight:700">⭐ HỌC THỬ</span>` : '';
+    return `<tr style="${rowStyle}">
       <td>${i+1}</td>
-      <td class="td-name">${s.name}</td>
+      <td class="td-name">${s.name}${hocThuTag}</td>
       <td>${fmtDate(s.dob)}</td>
       <td>${s.parent}</td>
       <td>${s.phone}</td>
       <td style="font-weight:600;color:var(--navy)">${s.subject}${s.pkg?`<br><span style="font-size:10px;color:var(--muted);font-weight:400">${s.pkg}</span>`:''}</td>
       <td>${(()=>{const cl=classes.find(c=>c.id===s.classid);return cl?`<span class='pos-badge'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
-      <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span></td>
+      <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span>${expiryTag}</td>
       <td>${pb(s.payment)}</td>
       <td style="font-weight:700;color:var(--gold)">${s.amount?fmt(s.amount):'–'}</td>
       <td><div class="action-btns"><button class="btn-icon" onclick="editStudent(${s.id})" title="Sửa">✎</button><button class="btn-icon del" onclick="deleteStudent(${s.id})" title="Xóa">✕</button></div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ── STAFF ──
@@ -453,6 +486,8 @@ function renderLeadTable() {
   };
   const stBadge = s => s === 'Đã tư vấn'
     ? `<span class="badge badge-consulted">✓ Đã Tư Vấn</span>`
+    : s === 'Đã đăng ký học'
+    ? `<span class="badge" style="background:#dcfce7;color:#14532d;border:1px solid #4ade80;">✅ Đã Đăng Ký</span>`
     : `<span class="badge badge-new">○ Chưa Liên Hệ</span>`;
   tbody.innerHTML = filtered.map((l, i) => `
     <tr>
