@@ -54,8 +54,8 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--cream);color:var(-
   font-size:18px;flex-shrink:0;
   box-shadow:0 4px 12px rgba(246,153,34,.35);
 }
-.logo-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--white);letter-spacing:.5px;line-height:1.1;}
-.logo-sub{font-size:9px;letter-spacing:1.8px;color:rgba(251,237,211,.55);text-transform:uppercase;margin-top:3px;font-weight:500;}
+.logo-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--white);letter-spacing:.5px;line-height:1.1;white-space:nowrap;}
+.logo-sub{font-size:9px;letter-spacing:1.8px;color:rgba(251,237,211,.55);text-transform:uppercase;margin-top:3px;font-weight:500;white-space:nowrap;}
 
 .nav-section{padding:18px 12px 0;}
 .nav-label{
