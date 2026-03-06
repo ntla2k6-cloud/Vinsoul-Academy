@@ -155,7 +155,10 @@
     <div class="page-title">Các <span>Khóa Học</span></div>
     <div class="page-sub">Chọn khóa học để xem chi tiết học phí và số buổi</div>
   </div>
-  <div class="courses-grid">
+  <div class="toolbar" style="margin-bottom:14px;">
+    <button class="btn btn-gold" onclick="startAddCourse()">+ Thêm Khóa Học</button>
+  </div>
+  <div class="courses-grid" id="courses-grid">
     <div class="course-card" onclick="openCourse('piano')"><span class="course-emoji">🎹</span><div class="course-name">Piano</div><div class="course-count">9 gói học phí</div></div>
     <div class="course-card" onclick="openCourse('guitar')"><span class="course-emoji">🎸</span><div class="course-name">Guitar</div><div class="course-count">9 gói học phí</div></div>
     <div class="course-card" onclick="openCourse('violin')"><span class="course-emoji">🎻</span><div class="course-name">Violin</div><div class="course-count">9 gói học phí</div></div>
@@ -169,6 +172,9 @@
     <div class="course-card" onclick="openCourse('luyen-thi')"><span class="course-emoji">🏆</span><div class="course-name">Luyện Thi Quốc Tế</div><div class="course-count">Guitar · Violin · Piano · Vẽ</div></div>
     <div class="course-card" onclick="openCourse('hocthu')"><span class="course-emoji">⭐</span><div class="course-name">Học Thử</div><div class="course-count">3 loại</div></div>
     <div class="course-card" onclick="openCourse('camthu')"><span class="course-emoji">🎼</span><div class="course-name">Cảm Thụ Âm Nhạc</div><div class="course-count">Miễn phí · 24 buổi</div></div>
+    <div class="course-card" onclick="openCourse('pianodemhat')"><span class="course-emoji">🎹🎤</span><div class="course-name">Piano Đệm Hát</div><div class="course-count">9 gói học phí</div></div>
+    <div class="course-card" onclick="openCourse('trong')"><span class="course-emoji">🥁</span><div class="course-name">Trống</div><div class="course-count">9 gói học phí</div></div>
+    <div id="custom-courses-container" style="display:contents"></div>
   </div>
 </div>
 
@@ -244,6 +250,8 @@
           <option>Luyện Thi - Piano</option><option>Luyện Thi - Guitar</option>
           <option>Luyện Thi - Violin</option><option>Luyện Thi - Vẽ</option>
           <option>Cảm Thụ Âm Nhạc</option>
+          <option>Piano Đệm Hát</option>
+          <option>Trống</option>
         </select>
       </div>
       <div class="form-group"><label>Gói / Loại Lớp</label>
@@ -451,6 +459,9 @@
           <option>Thanh Nhạc</option>
           <option>Luyện Thi - Piano</option><option>Luyện Thi - Guitar</option>
           <option>Luyện Thi - Violin</option><option>Luyện Thi - Vẽ</option>
+          <option>Piano Đệm Hát</option>
+          <option>Trống</option>
+          <option>Cảm Thụ Âm Nhạc</option>
           <option>Chưa xác định</option>
         </select>
       </div>
@@ -525,6 +536,8 @@
           <option>Luyện Thi - Piano</option><option>Luyện Thi - Guitar</option>
           <option>Luyện Thi - Violin</option><option>Luyện Thi - Vẽ</option>
           <option>Cảm Thụ Âm Nhạc</option>
+          <option>Piano Đệm Hát</option>
+          <option>Trống</option>
         </select>
       </div>
       <div class="form-group"><label>Giáo Viên</label><input id="cl-teacher" type="text" placeholder="Tên giáo viên phụ trách"></div>
@@ -563,6 +576,34 @@
 </div>
 
 </main>
+
+
+<!-- ══════════ CUSTOM COURSE MODAL ══════════ -->
+<div class="modal-backdrop" id="custom-course-modal" onclick="if(event.target===this)closeCustomCourseModal()">
+  <div class="modal" style="max-width:700px;">
+    <button class="modal-close" onclick="closeCustomCourseModal()">✕</button>
+    <div class="modal-header"><span class="modal-emoji">📚</span><div class="modal-title">Thêm / Sửa Khóa Học</div></div>
+    <div class="modal-sub">Tạo khóa học mới với học phí tùy chỉnh</div>
+    <div class="form-grid" style="margin-bottom:14px;">
+      <div class="form-group"><label>Mã Khóa (key) *</label><input id="cc-key" type="text" placeholder="VD: organ, bass_guitar..."></div>
+      <div class="form-group"><label>Tên Khóa Học *</label><input id="cc-name" type="text" placeholder="VD: Organ, Bass Guitar..."></div>
+      <div class="form-group"><label>Emoji / Icon</label><input id="cc-emoji" type="text" placeholder="VD: 🎸" style="font-size:20px;"></div>
+    </div>
+    <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid var(--cream2);">Các Gói Học Phí</div>
+    <div style="display:grid;grid-template-columns:1fr 2fr 1fr auto;gap:6px;margin-bottom:6px;">
+      <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Nhóm Gói</span>
+      <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Mô Tả Gói</span>
+      <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Học Phí (đ)</span>
+      <span></span>
+    </div>
+    <div id="cc-rows-wrap"></div>
+    <button type="button" class="btn btn-outline" onclick="addCustomCourseRow()" style="margin-top:6px;font-size:11px;">+ Thêm gói</button>
+    <div class="form-actions" style="margin-top:16px;padding-top:16px;border-top:1.5px solid var(--cream2);">
+      <button class="btn btn-gold" onclick="saveCustomCourse()">💾 Lưu Khóa Học</button>
+      <button class="btn btn-outline" onclick="closeCustomCourseModal()">✕ Huỷ</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════ COURSE MODAL ══════════ -->
 <div class="modal-backdrop" id="course-modal" onclick="closeCourseModal(event)">
