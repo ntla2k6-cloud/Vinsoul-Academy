@@ -27,6 +27,8 @@
     <div class="nav-section">
       <div class="nav-label">Khóa Học</div>
       <div class="nav-item" onclick="showPage('courses')"><span class="nav-icon">♪</span> Các Khóa Học</div>
+      <div class="nav-item" onclick="showPage('courses');openCourse('pianodemhat')"><span class="nav-icon">🎹🎤</span> Piano Đệm Hát</div>
+      <div class="nav-item" onclick="showPage('courses');openCourse('trong')"><span class="nav-icon">🥁</span> Trống</div>
     </div>
     <div class="nav-section">
       <div class="nav-label">Học Viên</div>
@@ -190,11 +192,22 @@
     <button class="btn btn-navy" onclick="startAddClass()" style="background:var(--navy)">🏫 Thêm Lớp</button>
     <button class="btn btn-outline" onclick="exportExcel('students')" title="Xuất ra file Excel">📊 Xuất Excel</button>
   </div>
+  <!-- Thông báo sắp hết khóa -->
+  <div id="expiry-alert-banner" style="display:none;background:linear-gradient(90deg,#fff7ed,#fef3c7);border:1.5px solid #f59e0b;border-radius:12px;padding:12px 18px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="font-size:20px;">⏰</span>
+    <div style="flex:1;">
+      <div style="font-size:12px;font-weight:800;color:#92400e;letter-spacing:.5px;margin-bottom:2px;">HỌC VIÊN SẮP HẾT KHÓA (trong 10 ngày)</div>
+      <div id="expiry-alert-list" style="font-size:12px;color:#78350f;"></div>
+    </div>
+    <button onclick="setStudentFilter('sap-het-khoa',this)" class="btn btn-outline" style="font-size:10px;padding:5px 12px;border-color:#f59e0b;color:#92400e;">Xem danh sách →</button>
+  </div>
   <div class="filter-tabs" id="filter-payment-tabs">
     <button class="filter-tab active" onclick="setStudentFilter('all',this)">Tất Cả</button>
     <button class="filter-tab" onclick="setStudentFilter('Đã Chuyển Khoản',this)">Đã Chuyển Khoản</button>
     <button class="filter-tab" onclick="setStudentFilter('Tiền Mặt',this)">Tiền Mặt</button>
     <button class="filter-tab" onclick="setStudentFilter('Chưa Thanh Toán',this)">Chưa Thanh Toán</button>
+    <button class="filter-tab" onclick="setStudentFilter('hoc-thu',this)" style="background:#fef9c3;color:#713f12;border-color:#fcd34d;">⭐ Học Thử</button>
+    <button class="filter-tab" onclick="setStudentFilter('sap-het-khoa',this)" style="background:#fff7ed;color:#92400e;border-color:#f59e0b;">⏰ Sắp Hết Khóa</button>
   </div>
   <div class="filter-tabs" id="filter-subject-tabs" style="margin-top:-4px;flex-wrap:wrap;">
     <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:5px 4px;align-self:center;flex-shrink:0;">Khóa:</span>
@@ -241,6 +254,7 @@
           <option>Cảm Thụ Âm Nhạc</option>
           <option>Piano Đệm Hát</option>
           <option>Trống</option>
+          <option>Học Thử</option>
         </select>
       </div>
       <div class="form-group"><label>Gói / Loại Lớp</label>
@@ -326,8 +340,6 @@
             <option>Giáo Viên Khiêu Vũ</option>
             <option>Giáo Viên Múa Cổ Trang</option>
             <option>Giáo Viên Thanh Nhạc</option>
-            <option>Giáo Viên Piano Đệm Hát</option>
-            <option>Giáo Viên Trống</option>
           </optgroup>
           <optgroup label="Nhân Viên">
             <option>Giáo Vụ</option>
@@ -406,6 +418,7 @@
     <button class="filter-tab active" onclick="setLeadFilter('all',this)">Tất Cả</button>
     <button class="filter-tab" onclick="setLeadFilter('Chưa liên hệ',this)">Chưa Liên Hệ</button>
     <button class="filter-tab" onclick="setLeadFilter('Đã tư vấn',this)">Đã Tư Vấn</button>
+    <button class="filter-tab" onclick="setLeadFilter('Đã đăng ký học',this)" style="background:#dcfce7;color:#14532d;border-color:#4ade80;">✅ Đã Đăng Ký Học</button>
     <button class="filter-tab" onclick="setLeadFilter('Trực tiếp',this)">Trực Tiếp</button>
     <button class="filter-tab" onclick="setLeadFilter('Facebook',this)">Facebook</button>
     <button class="filter-tab" onclick="setLeadFilter('Tiktok',this)">Tiktok</button>
@@ -469,6 +482,7 @@
           <option value="">-- Chọn tình trạng --</option>
           <option>Chưa liên hệ</option>
           <option>Đã tư vấn</option>
+          <option>Đã đăng ký học</option>
         </select>
       </div>
       <div class="form-group full"><label>Ghi Chú / Nội Dung Tư Vấn</label>
