@@ -207,7 +207,7 @@ function populatePackages(selectedPkg) {
     const filtered = classes.filter(c => !subj || c.subject === subj);
     clSel.innerHTML = '<option value="">-- Chọn lớp (nếu có) --</option>'
       + filtered.map(c => {
-          const hvCount = students.filter(s => s.classid === c.id && s.id !== editStudentId).length;
+          const hvCount = students.filter(s => Number(s.classid) === c.id && s.id !== editStudentId).length;
           const sched = (c.schedule||[]).map(s=>`${s.day} ${s.start}`).join(', ') || 'Chưa có lịch';
           return `<option value="${c.id}"${c.id===Number(currentVal)?' selected':''}>[${c.code}] ${c.name} · ${sched} · ${hvCount} HV</option>`;
         }).join('');
@@ -272,7 +272,7 @@ function closeCourseModal(e){if(e.target===document.getElementById('course-modal
 function saveStudent(){
   const g=id=>document.getElementById(id).value.trim?document.getElementById(id).value.trim():document.getElementById(id).value;
   const name=g('f-name'),dob=g('f-dob'),parent=g('f-parent'),phone=g('f-phone'),
-        subject=g('f-subject'),pkg=g('f-package'),classid=document.getElementById('f-classid')?document.getElementById('f-classid').value:'',start=g('f-start'),end=g('f-end'),
+        subject=g('f-subject'),pkg=g('f-package'),classid=document.getElementById('f-classid')?Number(document.getElementById('f-classid').value)||'':'' ,start=g('f-start'),end=g('f-end'),
         payment=g('f-payment'),amount=g('f-amount'),paydate=g('f-paydate'),note=g('f-note');
   if(!name||!parent||!phone||!subject||!start||!payment){showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)',true);return;}
   const obj={id:editStudentId||Date.now(),name,dob,parent,phone,subject,pkg,classid,start,end,payment,amount:Number(amount)||0,paydate,note};
@@ -361,7 +361,7 @@ function renderStudentTable(){
     if(studentFilter==='hoc-thu') mf=s.subject==='Học Thử';
     else if(studentFilter==='sap-het-khoa') mf=isExpiringSoon(s)&&s.subject!=='Học Thử';
     else if(studentFilter!=='all') mf=s.payment===studentFilter;
-    const mc=studentClassFilter==='all'||s.classid===studentClassFilter;
+    const mc=studentClassFilter==='all'||Number(s.classid)===Number(studentClassFilter);
     const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
     return mq&&mf&&ms&&mc;
   });
@@ -382,7 +382,7 @@ function renderStudentTable(){
       <td>${s.parent}</td>
       <td>${s.phone}</td>
       <td style="font-weight:600;color:var(--navy)">${s.subject}${s.pkg?`<br><span style="font-size:10px;color:var(--muted);font-weight:400">${s.pkg}</span>`:''}</td>
-      <td>${(()=>{const cl=classes.find(c=>c.id===s.classid);return cl?`<span class='pos-badge' style='cursor:pointer' onclick='viewClassSchedule(${cl.id})' title='Xem TKB lớp này'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
+      <td>${(()=>{const cl=classes.find(c=>c.id===Number(s.classid));return cl?`<span class='pos-badge' style='cursor:pointer' onclick='viewClassSchedule(${cl.id})' title='Xem TKB lớp này'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
       <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span>${expiryTag}</td>
       <td>${pb(s.payment)}</td>
       <td style="font-weight:700;color:var(--gold)">${s.amount?fmt(s.amount):'–'}</td>
@@ -797,7 +797,7 @@ function renderClassTable() {
     return;
   }
   tbody.innerHTML = filtered.map((c, i) => {
-    const hvCount = students.filter(s => s.classid === c.id).length;
+    const hvCount = students.filter(s => Number(s.classid) === c.id).length;
     const sched = (c.schedule || []).map(s => `${s.day} ${s.start}–${s.end}`).join('<br>') || '–';
     return `<tr>
       <td>${i+1}</td>
@@ -839,7 +839,7 @@ function renderSchedule() {
   const lookup = {};
   dayOrder.forEach(d => { lookup[d] = {}; });
   filteredClasses.forEach(c => {
-    const classStudents = students.filter(s => s.classid === c.id);
+    const classStudents = students.filter(s => Number(s.classid) === c.id);
     (c.schedule||[]).forEach(s => {
       if (!s.day || !s.start) return;
       if (!lookup[s.day]) lookup[s.day] = {};
@@ -1026,6 +1026,23 @@ function syncCourseSelects() {
     });
   });
 }
+
+// ── MIGRATION: classid string -> number ──
+(function migrateClassId() {
+  let changed = false;
+  students.forEach(s => {
+    if (s.classid !== '' && s.classid !== null && s.classid !== undefined) {
+      const n = Number(s.classid);
+      if (!isNaN(n) && n !== 0 && s.classid !== n) {
+        s.classid = n;
+        changed = true;
+      }
+    }
+  });
+  if (changed) {
+    localStorage.setItem('vs_students', JSON.stringify(students));
+  }
+})();
 
 // ── INIT ──
 initRevSelectors();
