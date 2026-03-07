@@ -299,7 +299,14 @@ function editStudent(id){
   document.getElementById('f-phone').value=s.phone;
   document.getElementById('f-subject').value=s.subject;
   populatePackages(s.pkg||'');
-  const clSel = document.getElementById('f-classid'); if(clSel && s.classid) { clSel.value = s.classid; }
+  // Set classid SAU populatePackages (vì populatePackages mới build options)
+  const clSel = document.getElementById('f-classid');
+  if (clSel && s.classid) {
+    // Option value là string trong HTML, classid có thể là number -> ép string
+    clSel.value = String(s.classid);
+    // Nếu không tìm thấy option (lớp bị xóa), để trống
+    if (!clSel.value) clSel.value = '';
+  }
   document.getElementById('f-start').value=s.start;
   document.getElementById('f-end').value=s.end||'';
   document.getElementById('f-payment').value=s.payment;
@@ -339,6 +346,58 @@ function renderExpiryBanner() {
 }
 
 function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));if(el)el.classList.add('active');renderStudentTable();}
+
+function quickAssignClass(studentId) {
+  const s = students.find(x => x.id === studentId);
+  if (!s) return;
+  // Build modal content
+  const filtered = classes.filter(c => !s.subject || c.subject === s.subject);
+  const allClasses = classes; // hiển thị tất cả nếu không có lớp cùng môn
+  const listToShow = filtered.length ? filtered : allClasses;
+  const opts = listToShow.map(c => {
+    const hvCount = students.filter(x => Number(x.classid) === c.id).length;
+    const sched = (c.schedule||[]).map(x=>`${x.day} ${x.start}–${x.end}`).join(', ') || 'Chưa có lịch';
+    const selected = Number(s.classid) === c.id ? ' selected' : '';
+    return `<option value="${c.id}"${selected}>[${c.code}] ${c.name} · ${sched} · ${hvCount} HV</option>`;
+  }).join('');
+
+  const modalHtml = `
+    <div id="quick-assign-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)closeAssignModal()">
+      <div style="background:#fff;border-radius:16px;padding:28px 28px 22px;min-width:380px;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+        <div style="font-size:16px;font-weight:800;color:#1a3a5c;margin-bottom:6px;">Gán Lớp Nhanh</div>
+        <div style="font-size:13px;color:#888;margin-bottom:18px;">Học viên: <b style="color:#1a3a5c">${s.name}</b> · ${s.subject}</div>
+        <select id="qa-classid" style="width:100%;padding:10px 12px;border:2px solid #e2c97e;border-radius:10px;font-size:13px;color:#1a3a5c;margin-bottom:18px;background:#fffbf0;">
+          <option value="">-- Chưa gán lớp --</option>
+          ${opts}
+        </select>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button onclick="closeAssignModal()" style="padding:8px 18px;border-radius:8px;border:1.5px solid #ddd;background:#f5f5f5;cursor:pointer;font-size:13px;">Hủy</button>
+          <button onclick="doAssignClass(${studentId})" style="padding:8px 20px;border-radius:8px;border:none;background:#e2c97e;color:#1a3a5c;font-weight:800;cursor:pointer;font-size:13px;">Lưu Gán Lớp</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function doAssignClass(studentId) {
+  const sel = document.getElementById('qa-classid');
+  if (!sel) return;
+  const classId = sel.value ? Number(sel.value) : '';
+  const i = students.findIndex(x => x.id === studentId);
+  if (i !== -1) {
+    students[i].classid = classId;
+    save();
+    renderStudentTable();
+    if (document.getElementById('schedule-grid')) renderSchedule();
+    showToast('Đã gán lớp thành công!');
+  }
+  closeAssignModal();
+}
+
+function closeAssignModal() {
+  const m = document.getElementById('quick-assign-modal');
+  if (m) m.remove();
+}
 
 function viewClassSchedule(classId) {
   // Nhảy sang trang TKB và lọc theo môn của lớp đó
@@ -386,7 +445,7 @@ function renderStudentTable(){
       <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span>${expiryTag}</td>
       <td>${pb(s.payment)}</td>
       <td style="font-weight:700;color:var(--gold)">${s.amount?fmt(s.amount):'–'}</td>
-      <td><div class="action-btns"><button class="btn-icon" onclick="editStudent(${s.id})" title="Sửa">✎</button><button class="btn-icon del" onclick="deleteStudent(${s.id})" title="Xóa">✕</button></div></td>
+      <td><div class="action-btns"><button class="btn-icon" onclick="quickAssignClass(${s.id})" title="Gán Lớp Nhanh" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd">⊞</button><button class="btn-icon" onclick="editStudent(${s.id})" title="Sửa">✎</button><button class="btn-icon del" onclick="deleteStudent(${s.id})" title="Xóa">✕</button></div></td>
     </tr>`;
   }).join('');
 }
