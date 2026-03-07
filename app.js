@@ -200,16 +200,32 @@ function populatePackages(selectedPkg) {
   pkgSel.innerHTML = pkgs.length
     ? '<option value="">-- Chọn gói --</option>' + pkgs.map(p => `<option${p===selectedPkg?' selected':''}>${p}</option>`).join('')
     : '<option value="">-- Chọn khóa học trước --</option>';
-  // populate class dropdown
+  // populate class dropdown - lọc theo môn học đã chọn
   const clSel = document.getElementById('f-classid');
   if (clSel) {
+    const currentVal = clSel.value;
     const filtered = classes.filter(c => !subj || c.subject === subj);
     clSel.innerHTML = '<option value="">-- Chọn lớp (nếu có) --</option>'
-      + filtered.map(c => `<option value="${c.id}">[${c.code}] ${c.name}</option>`).join('');
+      + filtered.map(c => {
+          const hvCount = students.filter(s => s.classid === c.id && s.id !== editStudentId).length;
+          const sched = (c.schedule||[]).map(s=>`${s.day} ${s.start}`).join(', ') || 'Chưa có lịch';
+          return `<option value="${c.id}"${c.id===Number(currentVal)?' selected':''}>[${c.code}] ${c.name} · ${sched} · ${hvCount} HV</option>`;
+        }).join('');
   }
 }
+
 function onClassSelect() {
-  // tự động điền tên lớp nếu chọn
+  // Khi chọn lớp: tự động điền môn học nếu chưa chọn
+  const clSel = document.getElementById('f-classid');
+  const subjSel = document.getElementById('f-subject');
+  if (!clSel || !subjSel) return;
+  const classId = Number(clSel.value);
+  if (!classId) return;
+  const cls = classes.find(c => c.id === classId);
+  if (cls && !subjSel.value) {
+    subjSel.value = cls.subject;
+    populatePackages('');
+  }
 }
 
 function setStudentClassFilter(f, el) {
@@ -263,6 +279,10 @@ function saveStudent(){
   if(editStudentId!==null){const i=students.findIndex(s=>s.id===editStudentId);if(i!==-1)students[i]=obj;editStudentId=null;}
   else students.push(obj);
   save(); showToast('Đã lưu học viên thành công!'); clearStudentForm(); showPage('students');
+  // Cũng cập nhật TKB nếu đang mở
+  if (document.getElementById('page-schedule') && document.getElementById('page-schedule').classList.contains('active')) {
+    renderSchedule();
+  }
 }
 function clearStudentForm(){
   ['f-name','f-dob','f-parent','f-phone','f-package','f-start','f-end','f-note','f-amount','f-paydate'].forEach(id=>document.getElementById(id).value='');
@@ -320,6 +340,16 @@ function renderExpiryBanner() {
 
 function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));if(el)el.classList.add('active');renderStudentTable();}
 
+function viewClassSchedule(classId) {
+  // Nhảy sang trang TKB và lọc theo môn của lớp đó
+  const cls = classes.find(c => c.id === classId);
+  if (!cls) return;
+  // Set filter môn học trên TKB
+  const tkbSel = document.getElementById('tkb-filter-subject');
+  if (tkbSel) tkbSel.value = cls.subject;
+  showPage('schedule');
+}
+
 function renderStudentTable(){
   renderClassFilterBtns();
   renderSubjectFilterBtns();
@@ -352,7 +382,7 @@ function renderStudentTable(){
       <td>${s.parent}</td>
       <td>${s.phone}</td>
       <td style="font-weight:600;color:var(--navy)">${s.subject}${s.pkg?`<br><span style="font-size:10px;color:var(--muted);font-weight:400">${s.pkg}</span>`:''}</td>
-      <td>${(()=>{const cl=classes.find(c=>c.id===s.classid);return cl?`<span class='pos-badge'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
+      <td>${(()=>{const cl=classes.find(c=>c.id===s.classid);return cl?`<span class='pos-badge' style='cursor:pointer' onclick='viewClassSchedule(${cl.id})' title='Xem TKB lớp này'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
       <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span>${expiryTag}</td>
       <td>${pb(s.payment)}</td>
       <td style="font-weight:700;color:var(--gold)">${s.amount?fmt(s.amount):'–'}</td>
@@ -791,10 +821,8 @@ function renderSchedule() {
   const filterSubj = document.getElementById('tkb-filter-subject').value;
   const filteredClasses = filterSubj === 'all' ? classes : classes.filter(c => c.subject === filterSubj);
 
-  // Build grid: rows = giờ slot, cols = thứ
   const dayOrder = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ Nhật'];
 
-  // Collect all time slots
   const slots = new Set();
   filteredClasses.forEach(c => (c.schedule||[]).forEach(s => {
     if (s.start) slots.add(s.start);
@@ -807,7 +835,7 @@ function renderSchedule() {
     return;
   }
 
-  // Build lookup: day -> timeStart -> [{class, students}]
+  // Build lookup: day -> timeStart -> [{class, students, end}]
   const lookup = {};
   dayOrder.forEach(d => { lookup[d] = {}; });
   filteredClasses.forEach(c => {
@@ -835,10 +863,18 @@ function renderSchedule() {
         entries.forEach(e => {
           const endStr = e.end ? `–${e.end}` : '';
           const studsHtml = e.studs.length
-            ? e.studs.map(s=>`<div class="tkb-cell-student">👤 ${s.name}</div>`).join('')
-            : `<div class="tkb-empty">Chưa có HV</div>`;
+            ? `<div class="tkb-student-list">` +
+              e.studs.map(s => `<div class="tkb-cell-student" title="${s.subject} · ${s.pkg||''}">
+                <span style="font-weight:700">${s.name}</span>
+                <span style="font-size:9px;color:var(--muted);margin-left:3px">${s.subject}</span>
+              </div>`).join('') +
+              `</div>`
+            : `<div class="tkb-empty" style="font-size:10px;color:var(--muted);padding:4px 0;">Chưa có HV</div>`;
+          const hvBadge = e.studs.length
+            ? `<span style="background:var(--navy);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px;font-weight:700">${e.studs.length} HV</span>`
+            : '';
           html += `<div class="tkb-cell">
-            <div class="tkb-cell-code">[${e.cls.code}] ${e.cls.name}</div>
+            <div class="tkb-cell-code">[${e.cls.code}] ${e.cls.name}${hvBadge}</div>
             <div class="tkb-cell-info">🕐 ${slot}${endStr} · ${e.cls.subject}</div>
             ${e.cls.teacher?`<div class="tkb-cell-teacher">👩‍🏫 ${e.cls.teacher}</div>`:''}
             ${studsHtml}
