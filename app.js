@@ -1447,6 +1447,58 @@ Ghi Chú   : ${note || '–'}
 Trạng Thái: Đang tư vấn`;
   document.getElementById('cq-result-text').textContent = msg;
   document.getElementById('cq-result').style.display = 'block';
+
+  // ── Tự động thêm vào HV Tiềm Năng ──
+  // Kiểm tra đã tồn tại chưa (cùng tên + cùng SĐT hoặc tên PH)
+  const alreadyExists = leads.find(l =>
+    l.name.toLowerCase() === hvname.toLowerCase() &&
+    (l.parent.toLowerCase() === (parent||'').toLowerCase() || !parent)
+  );
+
+  if (!alreadyExists) {
+    const newLead = {
+      id: Date.now(),
+      name: hvname,
+      dob: '',
+      parent: parent || '',
+      phone: '',
+      course: subject || 'Chưa xác định',
+      source: 'Trực tiếp',
+      status: 'Chưa liên hệ',
+      note: (note ? note + '\n' : '') + `Độ tuổi: ${age || '–'} | Tạo từ form tư vấn ${dateStr}`,
+      createdAt: new Date().toISOString().slice(0,10)
+    };
+    leads.push(newLead);
+    save();
+
+    // Hiển thị thông báo có link
+    const resultDiv = document.getElementById('cq-result');
+    const existingNote = resultDiv.querySelector('.cq-lead-note');
+    if (existingNote) existingNote.remove();
+    const noteEl = document.createElement('div');
+    noteEl.className = 'cq-lead-note';
+    noteEl.style.cssText = 'margin-top:10px;padding:8px 12px;background:#dcfce7;border:1.5px solid #4ade80;border-radius:8px;font-size:12px;color:#14532d;display:flex;align-items:center;gap:8px;';
+    noteEl.innerHTML = `<span style="font-size:16px;">✅</span>
+      <span>Đã tự động thêm <b>${hvname}</b> vào <b>HV Tiềm Năng</b></span>
+      <button onclick="showPage('leads')" style="margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;">Xem ngay →</button>`;
+    resultDiv.appendChild(noteEl);
+  } else {
+    // Đã có rồi, cập nhật note
+    alreadyExists.note = (alreadyExists.note ? alreadyExists.note + '\n' : '') + `Liên hệ lại ${dateStr}: ${note || '–'}`;
+    alreadyExists.status = 'Chưa liên hệ';
+    save();
+
+    const resultDiv = document.getElementById('cq-result');
+    const existingNote = resultDiv.querySelector('.cq-lead-note');
+    if (existingNote) existingNote.remove();
+    const noteEl = document.createElement('div');
+    noteEl.className = 'cq-lead-note';
+    noteEl.style.cssText = 'margin-top:10px;padding:8px 12px;background:#fef9c3;border:1.5px solid #fcd34d;border-radius:8px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:8px;';
+    noteEl.innerHTML = `<span style="font-size:16px;">⚠</span>
+      <span><b>${hvname}</b> đã có trong HV Tiềm Năng – đã cập nhật ghi chú</span>
+      <button onclick="showPage('leads')" style="margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;">Xem ngay →</button>`;
+    resultDiv.appendChild(noteEl);
+  }
 }
 
 function copyConsultMsg(elId) {
