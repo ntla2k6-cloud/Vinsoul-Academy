@@ -36,8 +36,6 @@ const STATIC_COURSES = [
   {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
   {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
   {name:'Trống',      emoji:'🥁', match:'Trống'},
-  {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
-  {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
 ];
 
 // ── HELPERS ──
@@ -260,8 +258,11 @@ function renderSubjectFilterBtns() {
   const wrap = document.getElementById('subject-filter-btns');
   if (!wrap) return;
   // Build full list: static + custom (dedup by name)
-  const staticNames = new Set(STATIC_COURSES.map(c => c.name));
-  const allTabs = [...STATIC_COURSES];
+  const staticNames = new Set();
+  const allTabs = [];
+  STATIC_COURSES.forEach(c => {
+    if (!staticNames.has(c.name)) { staticNames.add(c.name); allTabs.push(c); }
+  });
   customCourses.forEach(c => {
     if (!staticNames.has(c.name)) allTabs.push({name: c.name, emoji: c.emoji||'📚', match: c.name});
   });
