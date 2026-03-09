@@ -5,9 +5,14 @@ let customCourses = JSON.parse(localStorage.getItem('vs_custom_courses') || '[]'
 let customPrices  = JSON.parse(localStorage.getItem('vs_custom_prices')  || '{}');
 let staff         = JSON.parse(localStorage.getItem('vs_staff')    || '[]');
 let leads         = JSON.parse(localStorage.getItem('vs_leads')    || '[]');
+let attendance    = JSON.parse(localStorage.getItem('vs_attendance') || '[]');
+let makeups       = JSON.parse(localStorage.getItem('vs_makeups')   || '[]');
+let templates     = JSON.parse(localStorage.getItem('vs_templates') || '[]');
 let editStudentId = null;
 let editStaffId   = null;
 let editLeadId    = null;
+let editTmplId    = null;
+let editMakeupId  = null;
 let studentFilter = 'all';
 let studentClassFilter = 'all';
 let studentSubjectFilter = 'all';
@@ -45,6 +50,9 @@ const save    = () => {
   localStorage.setItem('vs_classes',   JSON.stringify(classes));
   localStorage.setItem('vs_custom_courses', JSON.stringify(customCourses));
   localStorage.setItem('vs_custom_prices',  JSON.stringify(customPrices));
+  localStorage.setItem('vs_attendance', JSON.stringify(attendance));
+  localStorage.setItem('vs_makeups',    JSON.stringify(makeups));
+  localStorage.setItem('vs_templates',  JSON.stringify(templates));
 };
 
 // ── DELETE MODAL ──
@@ -64,7 +72,7 @@ function showPage(id) {
     const oc = n.getAttribute('onclick') || '';
     if (oc.includes("'" + id + "'") || oc.includes('"' + id + '"')) n.classList.add('active');
   });
-  const map = { students: renderStudentTable, staff: renderStaffTable, dashboard: renderDashboard, revenue: renderRevenue, leads: renderLeadTable, classes: renderClassTable, schedule: renderSchedule };
+  const map = { students: renderStudentTable, staff: renderStaffTable, dashboard: renderDashboard, revenue: renderRevenue, leads: renderLeadTable, classes: renderClassTable, schedule: renderSchedule, attendance: initAttendancePage, makeup: initMakeupPage, consult: initConsultPage };
   if (map[id]) map[id]();
 }
 function startAddStudent() { editStudentId = null; clearStudentForm(); showPage('add-student'); }
@@ -1108,3 +1116,443 @@ initRevSelectors();
 renderDashboard();
 renderCoursesPage();
 renderSubjectFilterBtns();
+
+// ════════════════════════════════════════════
+// ── ĐIỂM DANH ──
+// ════════════════════════════════════════════
+
+function initAttendancePage() {
+  // Populate class select
+  const sel = document.getElementById('att-class-sel');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Chọn lớp --</option>'
+    + classes.map(c => `<option value="${c.id}"${String(c.id)===cur?' selected':''}>[${c.code}] ${c.name} · ${c.subject}</option>`).join('');
+  // Set today if no date
+  const dateSel = document.getElementById('att-date');
+  if (dateSel && !dateSel.value) dateSel.value = new Date().toISOString().slice(0,10);
+  renderAttendance();
+}
+
+function renderAttendance() {
+  const classId = Number(document.getElementById('att-class-sel').value);
+  const date = document.getElementById('att-date').value;
+  const cont = document.getElementById('att-content');
+  if (!classId || !date) {
+    cont.innerHTML = '<div class="empty-state" style="padding:60px 0"><div class="empty-icon">✔</div><div class="empty-text">Chọn lớp và ngày để bắt đầu điểm danh</div></div>';
+    return;
+  }
+  const cls = classes.find(c => c.id === classId);
+  const classStudents = students.filter(s => Number(s.classid) === classId);
+
+  // Đếm tổng buổi đã điểm danh của lớp
+  const classAttendances = attendance.filter(a => a.classId === classId);
+  const allDates = [...new Set(classAttendances.map(a => a.date))].sort();
+
+  // Kiểm tra buổi hiện tại đã có chưa
+  const existing = attendance.filter(a => a.classId === classId && a.date === date);
+  const existingMap = {};
+  existing.forEach(a => { existingMap[a.studentId] = a.status; });
+
+  if (!classStudents.length) {
+    cont.innerHTML = `<div class="card"><div class="empty-state" style="padding:40px 0"><div class="empty-icon">👥</div><div class="empty-text">Lớp [${cls.code}] chưa có học viên nào</div></div></div>`;
+    return;
+  }
+
+  // Thống kê buổi học mỗi HV
+  let statsHtml = '';
+  if (allDates.length) {
+    const maxSessions = extractTotalSessions(classStudents);
+    statsHtml = `<div class="card" style="margin-bottom:12px;">
+      <div class="card-title" style="margin-bottom:10px;">Thống Kê Buổi Học – Lớp [${cls.code}] ${cls.name}</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Học Viên</th><th>Tổng Đăng Ký</th><th>Đã Học</th><th>Vắng Phép</th><th>Vắng KP</th><th>Còn Lại</th><th>Tiến Độ</th></tr></thead>
+        <tbody>${classStudents.map(s => {
+          const sAtt = classAttendances.filter(a => a.studentId === s.id);
+          const present = sAtt.filter(a => a.status === 'present').length;
+          const absentExcused = sAtt.filter(a => a.status === 'absent-excused').length;
+          const absentNo = sAtt.filter(a => a.status === 'absent').length;
+          const total = extractTotalSessionsForStudent(s);
+          const remaining = Math.max(0, total - present);
+          const pct = total > 0 ? Math.round(present/total*100) : 0;
+          return `<tr>
+            <td class="td-name">${s.name}</td>
+            <td style="font-weight:700">${total} buổi</td>
+            <td><span style="color:#16a34a;font-weight:700">${present}</span></td>
+            <td><span style="color:#d97706;font-weight:700">${absentExcused}</span></td>
+            <td><span style="color:#dc2626;font-weight:700">${absentNo}</span></td>
+            <td><span style="color:#0369a1;font-weight:700">${remaining}</span></td>
+            <td><div style="background:#e5e7eb;border-radius:99px;height:8px;width:80px;overflow:hidden;"><div style="background:#22c55e;height:100%;width:${pct}%;border-radius:99px;"></div></div><span style="font-size:10px;color:var(--muted)">${pct}%</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  let rows = classStudents.map(s => {
+    const status = existingMap[s.id] || 'present';
+    return `<tr>
+      <td class="td-name">${s.name}</td>
+      <td style="font-size:11px;color:var(--muted)">${s.subject}</td>
+      <td>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;${status==='present'?'background:#dcfce7;color:#14532d;':'background:#f1f5f9;color:#64748b;'}border:1.5px solid ${status==='present'?'#4ade80':'#e2e8f0'};">
+            <input type="radio" name="att_${s.id}" value="present" ${status==='present'?'checked':''} onchange="updateAttRow(${s.id})" style="margin:0;">
+            Có Mặt
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;${status==='absent-excused'?'background:#fef9c3;color:#92400e;':'background:#f1f5f9;color:#64748b;'}border:1.5px solid ${status==='absent-excused'?'#fcd34d':'#e2e8f0'};">
+            <input type="radio" name="att_${s.id}" value="absent-excused" ${status==='absent-excused'?'checked':''} onchange="updateAttRow(${s.id})" style="margin:0;">
+            Vắng Bù Phép
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;${status==='absent'?'background:#fee2e2;color:#991b1b;':'background:#f1f5f9;color:#64748b;'}border:1.5px solid ${status==='absent'?'#f87171':'#e2e8f0'};">
+            <input type="radio" name="att_${s.id}" value="absent" ${status==='absent'?'checked':''} onchange="updateAttRow(${s.id})" style="margin:0;">
+            Vắng KP
+          </label>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  cont.innerHTML = statsHtml + `<div class="card">
+    <div class="section-row" style="margin-bottom:12px;">
+      <div class="card-title">Điểm Danh – [${cls.code}] ${cls.name} – ${fmtDate(date)}</div>
+      ${existing.length?'<span style="font-size:11px;color:#16a34a;font-weight:700;">✓ Đã lưu buổi này</span>':'<span style="font-size:11px;color:#d97706;font-weight:700;">Chưa lưu</span>'}
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Học Viên</th><th>Khóa Học</th><th>Tình Trạng</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function updateAttRow(studentId) {
+  // just re-style labels on change (radio auto-handles)
+  const radios = document.querySelectorAll(`[name="att_${studentId}"]`);
+  radios.forEach(r => {
+    const lbl = r.parentElement;
+    if (r.value === 'present') {
+      lbl.style.cssText = `display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;background:${r.checked?'#dcfce7':'#f1f5f9'};color:${r.checked?'#14532d':'#64748b'};border:1.5px solid ${r.checked?'#4ade80':'#e2e8f0'};`;
+    } else if (r.value === 'absent-excused') {
+      lbl.style.cssText = `display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;background:${r.checked?'#fef9c3':'#f1f5f9'};color:${r.checked?'#92400e':'#64748b'};border:1.5px solid ${r.checked?'#fcd34d':'#e2e8f0'};`;
+    } else {
+      lbl.style.cssText = `display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;background:${r.checked?'#fee2e2':'#f1f5f9'};color:${r.checked?'#991b1b':'#64748b'};border:1.5px solid ${r.checked?'#f87171':'#e2e8f0'};`;
+    }
+  });
+}
+
+function extractTotalSessionsForStudent(s) {
+  // Trích xuất số buổi từ pkg: tìm "24 buổi" hoặc "8 buổi"
+  if (!s.pkg) return 24;
+  const m = s.pkg.match(/(\d+)\s*buổi/);
+  return m ? parseInt(m[1]) : 24;
+}
+function extractTotalSessions(studs) {
+  if (!studs.length) return 24;
+  return extractTotalSessionsForStudent(studs[0]);
+}
+
+function saveAttendance() {
+  const classId = Number(document.getElementById('att-class-sel').value);
+  const date = document.getElementById('att-date').value;
+  if (!classId || !date) { showToast('Vui lòng chọn lớp và ngày!', true); return; }
+  const classStudents = students.filter(s => Number(s.classid) === classId);
+  if (!classStudents.length) { showToast('Lớp chưa có học viên!', true); return; }
+
+  // Xóa điểm danh cũ của buổi này
+  attendance = attendance.filter(a => !(a.classId === classId && a.date === date));
+
+  classStudents.forEach(s => {
+    const radios = document.querySelectorAll(`[name="att_${s.id}"]`);
+    let status = 'present';
+    radios.forEach(r => { if (r.checked) status = r.value; });
+    attendance.push({ id: Date.now() + s.id, classId, studentId: s.id, date, status });
+    // Nếu vắng có phép, tự tạo record bù
+    if (status === 'absent-excused') {
+      const existing = makeups.find(m => m.studentId === s.id && m.absentDate === date && m.classId === classId);
+      if (!existing) {
+        makeups.push({ id: Date.now() + s.id + 1, classId, studentId: s.id, absentDate: date, reason: 'Vắng có phép', makeupDate: '', status: 'pending', note: '' });
+      }
+    }
+  });
+  save();
+  showToast('Đã lưu điểm danh buổi ' + fmtDate(date) + '!');
+  renderAttendance();
+}
+
+
+// ════════════════════════════════════════════
+// ── LỊCH BÙ ──
+// ════════════════════════════════════════════
+
+function initMakeupPage() {
+  const sel = document.getElementById('mu-class-sel');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Tất cả lớp --</option>'
+    + classes.map(c => `<option value="${c.id}"${String(c.id)===cur?' selected':''}>[${c.code}] ${c.name}</option>`).join('');
+  renderMakeup();
+}
+
+function renderMakeup() {
+  const classId = Number(document.getElementById('mu-class-sel').value) || null;
+  const statusF = document.getElementById('mu-status-sel').value;
+  let list = [...makeups];
+  if (classId) list = list.filter(m => m.classId === classId);
+  if (statusF !== 'all') list = list.filter(m => m.status === statusF);
+  list.sort((a,b) => (b.absentDate||'').localeCompare(a.absentDate||''));
+
+  const tbody = document.getElementById('makeup-table-body');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state" style="padding:40px 0"><div class="empty-icon">🔄</div><div class="empty-text">Không có lịch bù nào</div></div></td></tr>`;
+    return;
+  }
+  const stBadge = s => ({
+    pending: `<span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid #fcd34d;">Chờ Bù</span>`,
+    scheduled: `<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid #93c5fd;">Đã Xếp Lịch</span>`,
+    done: `<span style="background:#dcfce7;color:#14532d;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid #4ade80;">Đã Bù Xong</span>`,
+  }[s] || s);
+
+  tbody.innerHTML = list.map((m, i) => {
+    const s = students.find(x => x.id === m.studentId);
+    const c = classes.find(x => x.id === m.classId);
+    return `<tr>
+      <td>${i+1}</td>
+      <td class="td-name">${s ? s.name : '–'}</td>
+      <td>${c ? `<span class="pos-badge">[${c.code}]</span>` : '–'}</td>
+      <td>${fmtDate(m.absentDate)}</td>
+      <td style="font-size:11px">${m.reason||'–'}</td>
+      <td>${m.makeupDate ? fmtDate(m.makeupDate) : '<span style="color:var(--muted);font-size:11px;">Chưa xếp</span>'}</td>
+      <td>${stBadge(m.status)}</td>
+      <td><div class="action-btns">
+        <button class="btn-icon" onclick="editMakeup(${m.id})" title="Sửa">✎</button>
+        <button class="btn-icon" onclick="markMakeupDone(${m.id})" title="Đánh dấu xong" style="background:#dcfce7;color:#14532d;border-color:#4ade80;">✓</button>
+        <button class="btn-icon del" onclick="deleteMakeup(${m.id})" title="Xóa">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddMakeup() {
+  editMakeupId = null;
+  // populate student select
+  const sSel = document.getElementById('mu-student-sel');
+  sSel.innerHTML = '<option value="">-- Chọn học viên --</option>'
+    + students.map(s => `<option value="${s.id}">${s.name} · ${s.subject}</option>`).join('');
+  const cSel = document.getElementById('mu-class-inp');
+  cSel.innerHTML = '<option value="">-- Chọn lớp --</option>'
+    + classes.map(c => `<option value="${c.id}">[${c.code}] ${c.name}</option>`).join('');
+  document.getElementById('mu-absent-date').value = '';
+  document.getElementById('mu-makeup-date').value = '';
+  document.getElementById('mu-reason').value = 'Vắng có phép';
+  document.getElementById('mu-status-inp').value = 'pending';
+  document.getElementById('mu-note-inp').value = '';
+  document.getElementById('makeup-modal').classList.add('open');
+}
+
+function editMakeup(id) {
+  const m = makeups.find(x => x.id === id); if (!m) return;
+  editMakeupId = id;
+  openAddMakeup();
+  setTimeout(() => {
+    document.getElementById('mu-student-sel').value = m.studentId;
+    document.getElementById('mu-class-inp').value = m.classId;
+    document.getElementById('mu-absent-date').value = m.absentDate;
+    document.getElementById('mu-makeup-date').value = m.makeupDate || '';
+    document.getElementById('mu-reason').value = m.reason || 'Vắng có phép';
+    document.getElementById('mu-status-inp').value = m.status || 'pending';
+    document.getElementById('mu-note-inp').value = m.note || '';
+  }, 50);
+}
+
+function saveMakeup() {
+  const studentId = Number(document.getElementById('mu-student-sel').value);
+  const classId = Number(document.getElementById('mu-class-inp').value);
+  const absentDate = document.getElementById('mu-absent-date').value;
+  const makeupDate = document.getElementById('mu-makeup-date').value;
+  const reason = document.getElementById('mu-reason').value;
+  const status = document.getElementById('mu-status-inp').value;
+  const note = document.getElementById('mu-note-inp').value.trim();
+  if (!studentId || !classId || !absentDate) { showToast('Vui lòng chọn học viên, lớp và ngày vắng!', true); return; }
+  const obj = { id: editMakeupId || Date.now(), classId, studentId, absentDate, reason, makeupDate, status, note };
+  if (editMakeupId) {
+    const i = makeups.findIndex(x => x.id === editMakeupId);
+    if (i !== -1) makeups[i] = obj;
+    editMakeupId = null;
+  } else makeups.push(obj);
+  save(); closeMakeupModal(); renderMakeup();
+  showToast('Đã lưu lịch bù!');
+}
+
+function markMakeupDone(id) {
+  const m = makeups.find(x => x.id === id); if (!m) return;
+  m.status = 'done';
+  if (!m.makeupDate) m.makeupDate = new Date().toISOString().slice(0,10);
+  save(); renderMakeup();
+  showToast('Đã đánh dấu bù xong!');
+}
+
+function deleteMakeup(id) {
+  const m = makeups.find(x => x.id === id); if (!m) return;
+  const s = students.find(x => x.id === m.studentId);
+  confirmDelete((s ? s.name : 'lịch bù này'), () => {
+    makeups = makeups.filter(x => x.id !== id);
+    save(); renderMakeup();
+    showToast('Đã xóa lịch bù.');
+  });
+}
+
+function closeMakeupModal() { document.getElementById('makeup-modal').classList.remove('open'); }
+
+
+// ════════════════════════════════════════════
+// ── TƯ VẤN & MẪU TIN NHẮN ──
+// ════════════════════════════════════════════
+
+function initConsultPage() {
+  renderTemplates();
+  syncConsultCourseSelects();
+}
+
+function syncConsultCourseSelects() {
+  ['tmpl-filter-course','tmpl-course-inp'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    [...sel.querySelectorAll('option.custom-opt')].forEach(o => o.remove());
+    customCourses.forEach(c => {
+      const o = document.createElement('option');
+      o.textContent = c.name;
+      o.className = 'custom-opt';
+      sel.appendChild(o);
+    });
+  });
+}
+
+function genGroupMsg() {
+  const hvname = document.getElementById('cq-hvname').value.trim();
+  const age = document.getElementById('cq-age').value.trim();
+  const parent = document.getElementById('cq-parent').value.trim();
+  const subject = document.getElementById('cq-subject').value.trim();
+  const note = document.getElementById('cq-note').value.trim();
+  if (!hvname) { showToast('Vui lòng nhập tên học viên!', true); return; }
+  const now = new Date();
+  const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const msg = `KH MỚI – ${dateStr}
+─────────────────────
+Học Viên  : ${hvname}
+Độ Tuổi   : ${age || '–'}
+PH Zalo   : ${parent || '–'}
+Môn Học   : ${subject || '–'}
+Ghi Chú   : ${note || '–'}
+─────────────────────
+Trạng Thái: Đang tư vấn`;
+  document.getElementById('cq-result-text').textContent = msg;
+  document.getElementById('cq-result').style.display = 'block';
+}
+
+function copyConsultMsg(elId) {
+  const text = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Đã copy!'));
+}
+
+// ── TEMPLATE CRUD ──
+
+function renderTemplates() {
+  const filterCourse = document.getElementById('tmpl-filter-course').value;
+  const q = (document.getElementById('tmpl-search').value || '').toLowerCase();
+  let list = [...templates];
+  if (filterCourse !== 'all') list = list.filter(t => t.course === filterCourse);
+  if (q) list = list.filter(t => t.title.toLowerCase().includes(q) || t.body.toLowerCase().includes(q));
+
+  const grid = document.getElementById('templates-grid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="padding:40px 0"><div class="empty-icon">💬</div><div class="empty-text">Chưa có mẫu tin nào. Nhấn "+ Thêm Mẫu Tin" để tạo.</div></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(t => `
+    <div style="border:1.5px solid var(--cream2);border-radius:14px;padding:18px;background:#fff;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <span style="font-size:9px;font-weight:800;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;background:#fffbf0;border:1px solid #e2c97e;padding:2px 8px;border-radius:10px;">${t.course}</span>
+          <div style="font-size:14px;font-weight:800;color:var(--navy);margin-top:6px;">${t.title}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-icon" onclick="editTemplate(${t.id})" title="Sửa">✎</button>
+          <button class="btn-icon del" onclick="deleteTemplate(${t.id})" title="Xóa">✕</button>
+        </div>
+      </div>
+      <pre style="font-family:inherit;font-size:12px;white-space:pre-wrap;color:#374151;background:#f8fafc;border-radius:10px;padding:14px;max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;margin:0;">${escHtml(t.body)}</pre>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button onclick="copyTmplBody(${t.id})" class="btn btn-gold" style="font-size:11px;padding:6px 14px;">Copy Tin Nhắn</button>
+        <button onclick="sendToLead(${t.id})" class="btn btn-outline" style="font-size:11px;padding:6px 14px;">Xem & Copy</button>
+      </div>
+    </div>`).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function openAddTemplate() {
+  editTmplId = null;
+  document.getElementById('tmpl-title-inp').value = '';
+  document.getElementById('tmpl-course-inp').value = '';
+  document.getElementById('tmpl-body-inp').value = '';
+  document.getElementById('tmpl-modal').classList.add('open');
+}
+
+function editTemplate(id) {
+  const t = templates.find(x => x.id === id); if (!t) return;
+  editTmplId = id;
+  document.getElementById('tmpl-title-inp').value = t.title;
+  document.getElementById('tmpl-course-inp').value = t.course;
+  document.getElementById('tmpl-body-inp').value = t.body;
+  document.getElementById('tmpl-modal').classList.add('open');
+}
+
+function saveTemplate() {
+  const title = document.getElementById('tmpl-title-inp').value.trim();
+  const course = document.getElementById('tmpl-course-inp').value;
+  const body = document.getElementById('tmpl-body-inp').value.trim();
+  if (!title || !course || !body) { showToast('Vui lòng điền đầy đủ tiêu đề, khóa học và nội dung!', true); return; }
+  const obj = { id: editTmplId || Date.now(), title, course, body };
+  if (editTmplId) {
+    const i = templates.findIndex(x => x.id === editTmplId);
+    if (i !== -1) templates[i] = obj;
+    editTmplId = null;
+  } else templates.push(obj);
+  save(); closeTmplModal(); renderTemplates();
+  showToast('Đã lưu mẫu tin nhắn!');
+}
+
+function deleteTemplate(id) {
+  const t = templates.find(x => x.id === id); if (!t) return;
+  confirmDelete(t.title, () => {
+    templates = templates.filter(x => x.id !== id);
+    save(); renderTemplates();
+    showToast('Đã xóa mẫu tin.');
+  });
+}
+
+function copyTmplBody(id) {
+  const t = templates.find(x => x.id === id); if (!t) return;
+  navigator.clipboard.writeText(t.body).then(() => showToast('Đã copy mẫu tin "' + t.title + '"!'));
+}
+
+function sendToLead(id) {
+  const t = templates.find(x => x.id === id); if (!t) return;
+  // Show preview popup
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  div.innerHTML = `<div style="background:#fff;border-radius:16px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="font-weight:800;color:var(--navy);font-size:14px;margin-bottom:4px;">${t.title}</div>
+    <span style="font-size:9px;color:var(--gold);font-weight:700;letter-spacing:1px;">${t.course}</span>
+    <pre style="font-family:inherit;font-size:12px;white-space:pre-wrap;margin:14px 0;background:#f8fafc;padding:14px;border-radius:10px;border:1px solid #e5e7eb;">${escHtml(t.body)}</pre>
+    <div style="display:flex;gap:10px;">
+      <button onclick="navigator.clipboard.writeText(${JSON.stringify(t.body)}).then(()=>{showToast('Đã copy!');this.closest('div[style]').remove();})" class="btn btn-gold" style="font-size:12px;">Copy & Đóng</button>
+      <button onclick="this.closest('div[style]').remove()" class="btn btn-outline" style="font-size:12px;">Đóng</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+}
+
+function closeTmplModal() { document.getElementById('tmpl-modal').classList.remove('open'); editTmplId = null; }
