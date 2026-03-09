@@ -442,3 +442,12 @@ input::placeholder{color:var(--muted2);font-weight:400;}
 .price-edit-input { display:none; }
 .price-edit-input:focus { border-color:var(--gold) !important; box-shadow:0 0 0 3px rgba(200,146,42,.12); }
 #course-edit-actions { display:none; }
+/* ── ĐIỂM DANH / BÙ / TƯ VẤN ── */
+#att-content .card { margin-bottom: 12px; }
+.att-radio-row { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* Template card hover */
+#templates-grid > div:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(226,201,126,.2); transition: all .2s; }
+
+/* Consult step cards */
+.consult-step { border-radius:12px; padding:16px; }
