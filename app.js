@@ -1668,7 +1668,16 @@ function closeTmplModal() { document.getElementById('tmpl-modal').classList.remo
 // ════════════════════════════════════════════
 
 function exportBackup() {
-  window.open('/api/backup', '_blank');
+  const data = { students, staff, leads, classes, attendance, makeups, templates, customCourses, customPrices };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `vinsoul_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Đã tải backup về máy!');
 }
 
 function importBackup() {
@@ -1681,6 +1690,7 @@ function importBackup() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
+      // Nếu có server thì restore lên server
       if (_serverMode) {
         const res = await fetch('/api/restore', {
           method: 'POST',
@@ -1689,9 +1699,20 @@ function importBackup() {
         });
         if (!res.ok) throw new Error('Server lỗi');
       }
-      // Load lại
-      await loadData();
+      // Luôn ghi vào localStorage
+      students      = data.students      || [];
+      staff         = data.staff         || [];
+      leads         = data.leads         || [];
+      classes       = data.classes       || [];
+      attendance    = data.attendance    || [];
+      makeups       = data.makeups       || [];
+      templates     = data.templates     || [];
+      customCourses = data.customCourses || [];
+      customPrices  = data.customPrices  || {};
+      save();
       renderDashboard();
+      renderStudentTable();
+      renderSubjectFilterBtns();
       showToast('Đã restore dữ liệu thành công!');
     } catch (err) {
       showToast('Lỗi restore: ' + err.message, true);
