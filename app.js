@@ -88,6 +88,8 @@ async function loadData() {
     localStorage.setItem('vs_templates',     JSON.stringify(templates));
     localStorage.setItem('vs_custom_courses',JSON.stringify(customCourses));
     localStorage.setItem('vs_custom_prices', JSON.stringify(customPrices));
+    const stEl = document.getElementById('server-status');
+    if (stEl) stEl.innerHTML = '<span style="color:#4ade80;">● Server</span> – dữ liệu an toàn';
     showToast('Đã kết nối server – dữ liệu được lưu an toàn');
   } catch {
     // Fallback: đọc từ localStorage
@@ -101,6 +103,8 @@ async function loadData() {
     templates     = JSON.parse(localStorage.getItem('vs_templates')      || '[]');
     customCourses = JSON.parse(localStorage.getItem('vs_custom_courses') || '[]');
     customPrices  = JSON.parse(localStorage.getItem('vs_custom_prices')  || '{}');
+    const stEl2 = document.getElementById('server-status');
+    if (stEl2) stEl2.innerHTML = '<span style="color:#fbbf24;">● Local</span> – chưa có server';
   }
   // Migration classid
   let changed = false;
