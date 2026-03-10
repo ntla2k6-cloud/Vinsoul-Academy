@@ -1,13 +1,13 @@
 // ── STATE ──
-let students      = JSON.parse(localStorage.getItem('vs_students') || '[]');
-let classes       = JSON.parse(localStorage.getItem('vs_classes')   || '[]');
-let customCourses = JSON.parse(localStorage.getItem('vs_custom_courses') || '[]');
-let customPrices  = JSON.parse(localStorage.getItem('vs_custom_prices')  || '{}');
-let staff         = JSON.parse(localStorage.getItem('vs_staff')    || '[]');
-let leads         = JSON.parse(localStorage.getItem('vs_leads')    || '[]');
-let attendance    = JSON.parse(localStorage.getItem('vs_attendance') || '[]');
-let makeups       = JSON.parse(localStorage.getItem('vs_makeups')   || '[]');
-let templates     = JSON.parse(localStorage.getItem('vs_templates') || '[]');
+let students      = [];
+let classes       = [];
+let customCourses = [];
+let customPrices  = {};
+let staff         = [];
+let leads         = [];
+let attendance    = [];
+let makeups       = [];
+let templates     = [];
 let editStudentId = null;
 let editStaffId   = null;
 let editLeadId    = null;
@@ -18,6 +18,7 @@ let studentClassFilter = 'all';
 let studentSubjectFilter = 'all';
 let staffFilter   = 'all';
 let leadFilter    = 'all';
+let _serverMode   = false; // true nếu kết nối được server
 
 
 // ── STATIC COURSE LIST FOR FILTER TABS ──
@@ -41,17 +42,81 @@ const STATIC_COURSES = [
 // ── HELPERS ──
 const fmt     = n => Number(n||0).toLocaleString('vi-VN') + ' đ';
 const fmtDate = d => { if (!d) return '–'; const p = d.split('-'); if (p.length === 3) return p[2]+'/'+p[1]+'/'+p[0]; return d; };
-const save    = () => {
-  localStorage.setItem('vs_students', JSON.stringify(students));
-  localStorage.setItem('vs_staff',    JSON.stringify(staff));
-  localStorage.setItem('vs_leads',    JSON.stringify(leads));
-  localStorage.setItem('vs_classes',   JSON.stringify(classes));
-  localStorage.setItem('vs_custom_courses', JSON.stringify(customCourses));
-  localStorage.setItem('vs_custom_prices',  JSON.stringify(customPrices));
-  localStorage.setItem('vs_attendance', JSON.stringify(attendance));
-  localStorage.setItem('vs_makeups',    JSON.stringify(makeups));
-  localStorage.setItem('vs_templates',  JSON.stringify(templates));
+
+// ── LƯU DỮ LIỆU: server trước, localStorage dự phòng ──
+const save = () => {
+  const data = { students, staff, leads, classes, attendance, makeups, templates, customCourses, customPrices };
+  // Luôn lưu localStorage làm cache
+  Object.entries({
+    vs_students: students, vs_staff: staff, vs_leads: leads,
+    vs_classes: classes, vs_attendance: attendance, vs_makeups: makeups,
+    vs_templates: templates, vs_custom_courses: customCourses, vs_custom_prices: customPrices
+  }).forEach(([k,v]) => localStorage.setItem(k, JSON.stringify(v)));
+  // Lưu server
+  if (_serverMode) {
+    fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).catch(() => { _serverMode = false; });
+  }
 };
+
+// ── TẢI DỮ LIỆU KHI KHỞI ĐỘNG ──
+async function loadData() {
+  try {
+    const res = await fetch('/api/load');
+    if (!res.ok) throw new Error('Server không phản hồi');
+    const data = await res.json();
+    _serverMode = true;
+    students      = data.students      || [];
+    staff         = data.staff         || [];
+    leads         = data.leads         || [];
+    classes       = data.classes       || [];
+    attendance    = data.attendance    || [];
+    makeups       = data.makeups       || [];
+    templates     = data.templates     || [];
+    customCourses = data.customCourses || [];
+    customPrices  = data.customPrices  || {};
+    // Sync về localStorage
+    localStorage.setItem('vs_students',      JSON.stringify(students));
+    localStorage.setItem('vs_staff',         JSON.stringify(staff));
+    localStorage.setItem('vs_leads',         JSON.stringify(leads));
+    localStorage.setItem('vs_classes',       JSON.stringify(classes));
+    localStorage.setItem('vs_attendance',    JSON.stringify(attendance));
+    localStorage.setItem('vs_makeups',       JSON.stringify(makeups));
+    localStorage.setItem('vs_templates',     JSON.stringify(templates));
+    localStorage.setItem('vs_custom_courses',JSON.stringify(customCourses));
+    localStorage.setItem('vs_custom_prices', JSON.stringify(customPrices));
+    showToast('Đã kết nối server – dữ liệu được lưu an toàn');
+  } catch {
+    // Fallback: đọc từ localStorage
+    _serverMode   = false;
+    students      = JSON.parse(localStorage.getItem('vs_students')       || '[]');
+    staff         = JSON.parse(localStorage.getItem('vs_staff')          || '[]');
+    leads         = JSON.parse(localStorage.getItem('vs_leads')          || '[]');
+    classes       = JSON.parse(localStorage.getItem('vs_classes')        || '[]');
+    attendance    = JSON.parse(localStorage.getItem('vs_attendance')     || '[]');
+    makeups       = JSON.parse(localStorage.getItem('vs_makeups')        || '[]');
+    templates     = JSON.parse(localStorage.getItem('vs_templates')      || '[]');
+    customCourses = JSON.parse(localStorage.getItem('vs_custom_courses') || '[]');
+    customPrices  = JSON.parse(localStorage.getItem('vs_custom_prices')  || '{}');
+  }
+  // Migration classid
+  let changed = false;
+  students.forEach(s => {
+    if (s.classid !== '' && s.classid !== null && s.classid !== undefined) {
+      const n = Number(s.classid);
+      if (!isNaN(n) && n !== 0 && s.classid !== n) { s.classid = n; changed = true; }
+    }
+  });
+  if (changed) save();
+  // Khởi động UI
+  initRevSelectors();
+  renderDashboard();
+  renderCoursesPage();
+  renderSubjectFilterBtns();
+}
 
 // ── DELETE MODAL ──
 function confirmDelete(name, fn) {
@@ -1096,27 +1161,10 @@ function syncCourseSelects() {
 }
 
 // ── MIGRATION: classid string -> number ──
-(function migrateClassId() {
-  let changed = false;
-  students.forEach(s => {
-    if (s.classid !== '' && s.classid !== null && s.classid !== undefined) {
-      const n = Number(s.classid);
-      if (!isNaN(n) && n !== 0 && s.classid !== n) {
-        s.classid = n;
-        changed = true;
-      }
-    }
-  });
-  if (changed) {
-    localStorage.setItem('vs_students', JSON.stringify(students));
-  }
-})();
+// (đã chuyển vào loadData())
 
 // ── INIT ──
-initRevSelectors();
-renderDashboard();
-renderCoursesPage();
-renderSubjectFilterBtns();
+loadData();
 
 // ════════════════════════════════════════════
 // ── ĐIỂM DANH ──
@@ -1609,3 +1657,41 @@ function sendToLead(id) {
 }
 
 function closeTmplModal() { document.getElementById('tmpl-modal').classList.remove('open'); editTmplId = null; }
+
+
+// ════════════════════════════════════════════
+// ── BACKUP / RESTORE ──
+// ════════════════════════════════════════════
+
+function exportBackup() {
+  window.open('/api/backup', '_blank');
+}
+
+function importBackup() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (_serverMode) {
+        const res = await fetch('/api/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('Server lỗi');
+      }
+      // Load lại
+      await loadData();
+      renderDashboard();
+      showToast('Đã restore dữ liệu thành công!');
+    } catch (err) {
+      showToast('Lỗi restore: ' + err.message, true);
+    }
+  };
+  input.click();
+}
