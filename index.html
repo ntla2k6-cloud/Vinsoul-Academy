@@ -53,15 +53,6 @@
       <div class="nav-label">Tài Chính</div>
       <div class="nav-item" onclick="showPage('revenue')"><span class="nav-icon">💰</span> Doanh Thu</div>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">Điểm Danh</div>
-      <div class="nav-item" onclick="showPage('attendance')"><span class="nav-icon">✔</span> Điểm Danh HV</div>
-      <div class="nav-item" onclick="showPage('makeup')"><span class="nav-icon">🔄</span> Lịch Bù</div>
-    </div>
-    <div class="nav-section">
-      <div class="nav-label">Tư Vấn</div>
-      <div class="nav-item" onclick="showPage('consult')"><span class="nav-icon">💬</span> Tư Vấn & Mẫu Tin</div>
-    </div>
   </div>
   <div class="sidebar-footer">© 2025 Vinsoul Academy</div>
 </aside>
@@ -79,6 +70,10 @@
     <div class="welcome-right">
       <div class="welcome-brand">VINSOUL</div>
       <div class="welcome-brand-sub">Trung Tâm Âm Nhạc & Nghệ Thuật</div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button onclick="exportBackup()" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 12px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;">Backup Dữ Liệu</button>
+        <button onclick="importBackup()" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 12px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;">Restore</button>
+      </div>
     </div>
   </div>
 
@@ -589,131 +584,6 @@
   <div id="schedule-grid"></div>
 </div>
 
-<!-- ─── ATTENDANCE (ĐIỂM DANH) ─── -->
-<div id="page-attendance" class="page">
-  <div class="page-header">
-    <div class="page-title">Điểm Danh <span>Học Viên</span></div>
-    <div class="page-sub">Ghi nhận có mặt / vắng theo từng buổi học của lớp</div>
-  </div>
-  <div class="toolbar" style="flex-wrap:wrap;gap:10px;">
-    <select class="rev-month-select" id="att-class-sel" onchange="renderAttendance()" style="min-width:220px;">
-      <option value="">-- Chọn lớp --</option>
-    </select>
-    <input type="date" id="att-date" class="search-box" style="max-width:160px;" onchange="renderAttendance()">
-    <button class="btn btn-gold" onclick="saveAttendance()">💾 Lưu Điểm Danh</button>
-    <button class="btn btn-outline" onclick="showPage('makeup')">🔄 Xem Lịch Bù</button>
-  </div>
-  <div id="att-content">
-    <div class="empty-state" style="padding:60px 0"><div class="empty-icon">✔</div><div class="empty-text">Chọn lớp và ngày để bắt đầu điểm danh</div></div>
-  </div>
-</div>
-
-<!-- ─── MAKEUP (LỊCH BÙ) ─── -->
-<div id="page-makeup" class="page">
-  <div class="page-header">
-    <div class="page-title">Lịch Bù <span>Học Viên</span></div>
-    <div class="page-sub">Theo dõi buổi vắng có phép và lên lịch bù cho học viên</div>
-  </div>
-  <div class="toolbar" style="flex-wrap:wrap;gap:10px;">
-    <select class="rev-month-select" id="mu-class-sel" onchange="renderMakeup()" style="min-width:220px;">
-      <option value="">-- Tất cả lớp --</option>
-    </select>
-    <select class="rev-month-select" id="mu-status-sel" onchange="renderMakeup()">
-      <option value="all">Tất cả trạng thái</option>
-      <option value="pending">Chờ bù</option>
-      <option value="scheduled">Đã xếp lịch</option>
-      <option value="done">Đã bù xong</option>
-    </select>
-    <button class="btn btn-gold" onclick="openAddMakeup()">+ Thêm Lịch Bù</button>
-  </div>
-  <div class="card">
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>#</th><th>Học Viên</th><th>Lớp</th><th>Ngày Vắng</th><th>Lý Do</th><th>Ngày Bù</th><th>Tình Trạng</th><th>Thao Tác</th></tr></thead>
-        <tbody id="makeup-table-body"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ─── CONSULT (TƯ VẤN & MẪU TIN) ─── -->
-<div id="page-consult" class="page">
-  <div class="page-header">
-    <div class="page-title">Tư Vấn & <span>Mẫu Tin Nhắn</span></div>
-    <div class="page-sub">Quy trình tư vấn chuẩn + kho mẫu tin nhắn theo từng khóa học</div>
-  </div>
-
-  <!-- QUY TRÌNH TƯ VẤN -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-title" style="margin-bottom:14px;">Quy Trình Tư Vấn Chuẩn</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;">
-      <div style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);border-radius:12px;padding:16px;border-left:4px solid #0284c7;">
-        <div style="font-size:22px;margin-bottom:6px;">1</div>
-        <div style="font-weight:800;color:#0369a1;font-size:12px;margin-bottom:4px;">TIẾP NHẬN</div>
-        <div style="font-size:11px;color:#0c4a6e;">Xin tên học viên, độ tuổi, tên phụ huynh (Zalo), môn học quan tâm</div>
-      </div>
-      <div style="background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:12px;padding:16px;border-left:4px solid #ca8a04;">
-        <div style="font-size:22px;margin-bottom:6px;">2</div>
-        <div style="font-weight:800;color:#92400e;font-size:12px;margin-bottom:4px;">GHI NOTE</div>
-        <div style="font-size:11px;color:#78350f;">Ghi lại mong muốn, thời gian rảnh, mục tiêu học (thi chứng chỉ / học chơi...)</div>
-      </div>
-      <div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:12px;padding:16px;border-left:4px solid #16a34a;">
-        <div style="font-size:22px;margin-bottom:6px;">3</div>
-        <div style="font-weight:800;color:#14532d;font-size:12px;margin-bottom:4px;">GỬI THÔNG TIN</div>
-        <div style="font-size:11px;color:#166534;">Copy mẫu tin nhắn phù hợp (bên dưới) và gửi cho phụ huynh qua Zalo</div>
-      </div>
-      <div style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-radius:12px;padding:16px;border-left:4px solid #7c3aed;">
-        <div style="font-size:22px;margin-bottom:6px;">4</div>
-        <div style="font-weight:800;color:#4c1d95;font-size:12px;margin-bottom:4px;">BÁO NHÓM</div>
-        <div style="font-size:11px;color:#3b0764;">Tổng hợp: Tên HV – Độ tuổi – PH Zalo – Môn học – Ghi chú → gửi vào nhóm chung</div>
-      </div>
-      <div style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-radius:12px;padding:16px;border-left:4px solid #db2777;">
-        <div style="font-size:22px;margin-bottom:6px;">5</div>
-        <div style="font-weight:800;color:#831843;font-size:12px;margin-bottom:4px;">CHỐT & LƯU</div>
-        <div style="font-size:11px;color:#9d174d;">Nếu đồng ý: thêm vào mục HV Tiềm Năng → chuyển sang Đã Đăng Ký khi đóng tiền</div>
-      </div>
-    </div>
-    <!-- Form tổng hợp báo nhóm -->
-    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;">
-      <div style="font-size:11px;font-weight:800;color:var(--navy);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Soạn Tin Báo Nhóm Nhanh</div>
-      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div class="form-group" style="margin:0"><label style="font-size:10px;">Tên Học Viên</label><input id="cq-hvname" type="text" placeholder="Nguyễn Văn A" style="padding:7px 10px;"></div>
-        <div class="form-group" style="margin:0"><label style="font-size:10px;">Độ Tuổi</label><input id="cq-age" type="text" placeholder="8 tuổi" style="padding:7px 10px;"></div>
-        <div class="form-group" style="margin:0"><label style="font-size:10px;">Tên PH (Zalo)</label><input id="cq-parent" type="text" placeholder="Nguyễn Thị B" style="padding:7px 10px;"></div>
-        <div class="form-group" style="margin:0"><label style="font-size:10px;">Môn Học</label><input id="cq-subject" type="text" placeholder="Piano" style="padding:7px 10px;"></div>
-        <div class="form-group" style="margin:0;grid-column:span 2;"><label style="font-size:10px;">Ghi Chú</label><input id="cq-note" type="text" placeholder="Mục tiêu học, thời gian rảnh..." style="padding:7px 10px;"></div>
-      </div>
-      <button class="btn btn-gold" onclick="genGroupMsg()" style="font-size:12px;">Tạo Tin Báo Nhóm</button>
-      <div id="cq-result" style="display:none;margin-top:12px;background:#fff;border:1.5px solid var(--gold);border-radius:10px;padding:14px;position:relative;">
-        <pre id="cq-result-text" style="font-family:inherit;font-size:12px;white-space:pre-wrap;margin:0;color:#1a3a5c;"></pre>
-        <button onclick="copyConsultMsg('cq-result-text')" style="position:absolute;top:8px;right:8px;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;">Copy</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- KHO MẪU TIN NHẮN -->
-  <div class="card">
-    <div class="section-row" style="margin-bottom:14px;">
-      <div class="card-title">Kho Mẫu Tin Nhắn Tư Vấn</div>
-      <button class="btn btn-gold" onclick="openAddTemplate()" style="font-size:11px;">+ Thêm Mẫu Tin</button>
-    </div>
-    <div class="toolbar" style="margin-bottom:12px;gap:8px;">
-      <select class="rev-month-select" id="tmpl-filter-course" onchange="renderTemplates()" style="min-width:180px;">
-        <option value="all">Tất cả khóa học</option>
-        <option>Piano</option><option>Guitar</option><option>Violin</option><option>Ukulele</option>
-        <option>Vẽ Mầm Non</option><option>Vẽ Căn Bản</option>
-        <option>Ballet (3-5 tuổi)</option><option>Ballet (6-9 tuổi)</option>
-        <option>Dance</option><option>Khiêu Vũ</option><option>Múa Cổ Trang</option>
-        <option>Thanh Nhạc</option><option>Luyện Thi - Piano</option>
-        <option>Luyện Thi - Guitar</option><option>Luyện Thi - Violin</option>
-        <option>Piano Đệm Hát</option><option>Trống</option><option>Cảm Thụ Âm Nhạc</option>
-      </select>
-      <input class="search-box" id="tmpl-search" type="text" placeholder="Tìm mẫu tin..." oninput="renderTemplates()" style="max-width:200px;">
-    </div>
-    <div id="templates-grid" style="display:flex;flex-direction:column;gap:12px;"></div>
-  </div>
-</div>
-
 </main>
 
 
@@ -768,73 +638,6 @@
 </div>
 
 <div class="toast" id="toast">✓ <span id="toast-msg"></span></div>
-
-<!-- ══════════ ADD TEMPLATE MODAL ══════════ -->
-<div class="modal-backdrop" id="tmpl-modal" onclick="if(event.target===this)closeTmplModal()">
-  <div class="modal" style="max-width:640px;">
-    <button class="modal-close" onclick="closeTmplModal()">✕</button>
-    <div class="modal-header"><span class="modal-emoji">💬</span><div class="modal-title">Thêm / Sửa Mẫu Tin Nhắn</div></div>
-    <div class="modal-sub">Soạn mẫu tư vấn theo khóa học, lưu lại để dùng nhiều lần</div>
-    <div class="form-grid" style="margin-bottom:12px;">
-      <div class="form-group"><label>Tiêu Đề Mẫu *</label><input id="tmpl-title-inp" type="text" placeholder="VD: Thông Tin Piano Đệm Hát"></div>
-      <div class="form-group"><label>Khóa Học *</label>
-        <select id="tmpl-course-inp">
-          <option value="">-- Chọn khóa học --</option>
-          <option>Piano</option><option>Guitar</option><option>Violin</option><option>Ukulele</option>
-          <option>Vẽ Mầm Non</option><option>Vẽ Căn Bản</option>
-          <option>Ballet (3-5 tuổi)</option><option>Ballet (6-9 tuổi)</option>
-          <option>Dance</option><option>Khiêu Vũ</option><option>Múa Cổ Trang</option>
-          <option>Thanh Nhạc</option><option>Luyện Thi - Piano</option>
-          <option>Luyện Thi - Guitar</option><option>Luyện Thi - Violin</option>
-          <option>Piano Đệm Hát</option><option>Trống</option><option>Cảm Thụ Âm Nhạc</option>
-        </select>
-      </div>
-      <div class="form-group full"><label>Nội Dung Tin Nhắn *</label>
-        <textarea id="tmpl-body-inp" rows="10" placeholder="Nhập nội dung tin nhắn tư vấn đầy đủ...&#10;&#10;VD:&#10;PIANO ĐỆM HÁT&#10;Học phí: 4.200.000đ / khóa&#10;Thời lượng: 3 tháng (24 buổi)..."></textarea>
-      </div>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-gold" onclick="saveTemplate()">💾 Lưu Mẫu Tin</button>
-      <button class="btn btn-outline" onclick="closeTmplModal()">✕ Huỷ</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ ADD MAKEUP MODAL ══════════ -->
-<div class="modal-backdrop" id="makeup-modal" onclick="if(event.target===this)closeMakeupModal()">
-  <div class="modal" style="max-width:520px;">
-    <button class="modal-close" onclick="closeMakeupModal()">✕</button>
-    <div class="modal-header"><span class="modal-emoji">🔄</span><div class="modal-title">Thêm / Sửa Lịch Bù</div></div>
-    <div class="form-grid" style="margin-bottom:12px;">
-      <div class="form-group"><label>Học Viên *</label>
-        <select id="mu-student-sel" style="padding:9px 12px;border:1.5px solid var(--cream2);border-radius:10px;font-size:12px;width:100%;"></select>
-      </div>
-      <div class="form-group"><label>Lớp *</label>
-        <select id="mu-class-inp" style="padding:9px 12px;border:1.5px solid var(--cream2);border-radius:10px;font-size:12px;width:100%;"></select>
-      </div>
-      <div class="form-group"><label>Ngày Vắng *</label><input id="mu-absent-date" type="date"></div>
-      <div class="form-group"><label>Lý Do</label>
-        <select id="mu-reason" style="padding:9px 12px;border:1.5px solid var(--cream2);border-radius:10px;font-size:12px;width:100%;">
-          <option>Vắng có phép</option>
-          <option>Vắng không phép</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Ngày Bù (nếu đã xếp)</label><input id="mu-makeup-date" type="date"></div>
-      <div class="form-group"><label>Tình Trạng</label>
-        <select id="mu-status-inp" style="padding:9px 12px;border:1.5px solid var(--cream2);border-radius:10px;font-size:12px;width:100%;">
-          <option value="pending">Chờ bù</option>
-          <option value="scheduled">Đã xếp lịch</option>
-          <option value="done">Đã bù xong</option>
-        </select>
-      </div>
-      <div class="form-group full"><label>Ghi Chú</label><input id="mu-note-inp" type="text" placeholder="Ghi chú..."></div>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-gold" onclick="saveMakeup()">💾 Lưu</button>
-      <button class="btn btn-outline" onclick="closeMakeupModal()">Huỷ</button>
-    </div>
-  </div>
-</div>
 
 <!-- ══════════ SCRIPT ══════════ -->
 <script src="app.js"></script>
