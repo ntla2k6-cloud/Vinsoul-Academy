@@ -304,36 +304,83 @@ function deleteStudent(id) {
     showToast('Đã xóa học viên ' + s.name + '.');
   });
 }
-function setStudentFilter(f,el){studentFilter=f;document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderStudentTable();}
+function setStudentFilter(f,el){
+  studentFilter=f;
+  document.querySelectorAll('#page-students .filter-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderStudentTable();
+}
+
+// Đếm buổi đã học của 1 học viên (từ điểm danh + bù lịch)
+function countStudentSessions(studentId, classId) {
+  let count = 0;
+  attendance.forEach(a => {
+    if (classId && String(a.classId) !== String(classId)) return;
+    if (a.records && a.records[String(studentId)] === 'present') count++;
+  });
+  makeups.forEach(m => {
+    if (String(m.studentId) === String(studentId) && m.status === 'done') count++;
+  });
+  return count;
+}
+
+function extractTotalSessions(pkg) {
+  if (!pkg) return 0;
+  const m = pkg.match(/(\d+)\s*buổi/);
+  return m ? parseInt(m[1]) : 0;
+}
 
 function renderStudentTable(){
   renderClassFilterBtns();
   renderSubjectFilterBtns();
+  renderExpiryBanner();
   const q=(document.getElementById('search-input').value||'').toLowerCase();
   const filtered=students.filter(s=>{
     const mq=!q||s.name.toLowerCase().includes(q)||s.phone.includes(q)||s.subject.toLowerCase().includes(q)||(s.parent&&s.parent.toLowerCase().includes(q));
-    const mf=studentFilter==='all'||s.payment===studentFilter;
-    const mc=studentClassFilter==='all'||s.classid===studentClassFilter;
-    const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
+    let mf=true;
+    if(studentFilter==='hoc-thu') mf=s.subject==='Học Thử';
+    else if(studentFilter==='sap-het-khoa') mf=isExpiringSoon(s)&&s.subject!=='Học Thử';
+    else if(studentFilter!=='all') mf=s.payment===studentFilter;
+    const mc=studentClassFilter==='all'||String(s.classid)===String(studentClassFilter);
+    const ms=studentSubjectFilter==='all'||s.subject===studentSubjectFilter||(studentSubjectFilter==='Vẽ'&&s.subject&&s.subject.startsWith('Vẽ'))||(studentSubjectFilter==='Ballet'&&s.subject&&s.subject.startsWith('Ballet'))||(studentSubjectFilter==='Luyện Thi'&&s.subject&&s.subject.startsWith('Luyện Thi'));
     return mq&&mf&&ms&&mc;
   });
   const tbody=document.getElementById('student-table-body');
-  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Không tìm thấy học viên nào</div></div></td></tr>`;return;}
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Không tìm thấy học viên nào</div></div></td></tr>`;return;}
   const pb=p=>p==='Đã Chuyển Khoản'?`<span class="badge badge-paid">✓ CK</span>`:p==='Tiền Mặt'?`<span class="badge badge-cash">💵 TM</span>`:`<span class="badge badge-unpaid">⚠ Chưa TT</span>`;
-  tbody.innerHTML=filtered.map((s,i)=>`
-    <tr>
+  tbody.innerHTML=filtered.map((s,i)=>{
+    const isHocThu = s.subject==='Học Thử';
+    const expiring = isExpiringSoon(s)&&!isHocThu;
+    const daysLeft = s.end ? Math.ceil((new Date(s.end)-new Date())/(1000*60*60*24)) : null;
+    const expiryTag = expiring&&daysLeft!==null ? `<br><span style="font-size:10px;color:#dc2626;font-weight:700">⏰ còn ${daysLeft} ngày</span>` : '';
+    const hocThuTag = isHocThu ? `<br><span style="font-size:10px;background:#fde047;color:#713f12;padding:1px 6px;border-radius:4px;font-weight:700">⭐ HỌC THỬ</span>` : '';
+    const rowStyle = isHocThu?'background:linear-gradient(90deg,#fefce8,#fff);':expiring?'background:linear-gradient(90deg,#fff7ed,#fff);':'';
+    // Tính buổi học
+    const totalPkg = extractTotalSessions(s.pkg);
+    const doneSessions = countStudentSessions(s.id, s.classid);
+    const pct = totalPkg ? Math.min(100, Math.round(doneSessions/totalPkg*100)) : 0;
+    const sessionColor = pct>=100?'#16a34a':pct>=60?'#d97706':'var(--navy)';
+    const sessionCell = totalPkg
+      ? `<div style="font-size:12px;font-weight:700;color:${sessionColor}">${doneSessions}/${totalPkg}</div>
+         <div style="width:60px;height:5px;background:var(--cream2);border-radius:4px;margin-top:3px;overflow:hidden;">
+           <div style="width:${pct}%;height:100%;background:${sessionColor};border-radius:4px;"></div>
+         </div>`
+      : `<span style="color:var(--muted);font-size:11px;">–</span>`;
+    return `<tr style="${rowStyle}">
       <td>${i+1}</td>
-      <td class="td-name">${s.name}</td>
+      <td class="td-name">${s.name}${hocThuTag}</td>
       <td>${fmtDate(s.dob)}</td>
       <td>${s.parent}</td>
       <td>${s.phone}</td>
       <td style="font-weight:600;color:var(--navy)">${s.subject}${s.pkg?`<br><span style="font-size:10px;color:var(--muted);font-weight:400">${s.pkg}</span>`:''}</td>
       <td>${(()=>{const cl=classes.find(c=>c.id===s.classid);return cl?`<span class='pos-badge'>[${cl.code}]<br>${cl.name}</span>`:'–';})()}</td>
-      <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span></td>
+      <td style="font-size:11.5px">${fmtDate(s.start)}<br><span style="color:var(--muted)">→ ${fmtDate(s.end)}</span>${expiryTag}</td>
       <td>${pb(s.payment)}</td>
       <td style="font-weight:700;color:var(--gold)">${s.amount?fmt(s.amount):'–'}</td>
+      <td style="text-align:center;">${sessionCell}</td>
       <td><div class="action-btns"><button class="btn-icon" onclick="editStudent(${s.id})" title="Sửa">✎</button><button class="btn-icon del" onclick="deleteStudent(${s.id})" title="Xóa">✕</button></div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ── STAFF ──
