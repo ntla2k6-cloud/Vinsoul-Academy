@@ -60,7 +60,13 @@
       <div class="nav-item" onclick="showPage('consult')"><span class="nav-icon">💬</span> Tư Vấn</div>
     </div>
   </div>
-  <div class="sidebar-footer">© 2025 Vinsoul Academy</div>
+  <div class="sidebar-footer">
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;">
+      <button onclick="exportBackup()" title="Tải file backup dữ liệu" style="flex:1;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 8px;font-size:9.5px;font-weight:700;cursor:pointer;letter-spacing:.3px;font-family:'Be Vietnam Pro',sans-serif;">💾 Backup</button>
+      <button onclick="importBackup()" title="Khôi phục từ file backup" style="flex:1;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 8px;font-size:9.5px;font-weight:700;cursor:pointer;letter-spacing:.3px;font-family:'Be Vietnam Pro',sans-serif;">↺ Restore</button>
+    </div>
+    <div style="font-size:9px;color:rgba(255,255,255,.3);text-align:center;">© 2025 Vinsoul Academy</div>
+  </div>
 </aside>
 
 <!-- ══════════ MAIN ══════════ -->
@@ -213,7 +219,7 @@
   <div class="card">
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th><th>SĐT</th><th>Khóa Học</th><th>Tên Lớp</th><th>Thời Gian</th><th>Học Phí</th><th>Số Tiền</th><th>Thao Tác</th></tr></thead>
+        <thead><tr><th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th><th>SĐT</th><th>Khóa Học</th><th>Tên Lớp</th><th>Thời Gian</th><th>Học Phí</th><th>Số Tiền</th><th>Buổi Học</th><th>Thao Tác</th></tr></thead>
         <tbody id="student-table-body"></tbody>
       </table>
     </div>
