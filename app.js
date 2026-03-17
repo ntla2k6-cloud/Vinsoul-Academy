@@ -38,8 +38,6 @@ const STATIC_COURSES = [
   {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
   {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
   {name:'Trống',      emoji:'🥁', match:'Trống'},
-  {name:'Cảm Thụ Âm Nhạc', emoji:'🎼', match:'Cảm Thụ Âm Nhạc'},
-  {name:'Piano Đệm Hát',   emoji:'🎹🎤', match:'Piano Đệm Hát'},
 ];
 
 // ── HELPERS ──
@@ -992,7 +990,7 @@ function loadAttStudents() {
   const session = document.getElementById('att-session').value;
   if (!classId || !date) { showToast('Vui lòng chọn lớp và ngày học', true); return; }
 
-  const cls      = classes.find(c => String(c.id) === String(classId));
+  const cls = classes.find(c => String(c.id) === String(classId));
   const classStudents = students.filter(s => String(s.classid) === String(classId));
   if (!classStudents.length) {
     document.getElementById('att-content').innerHTML = `<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">Lớp này chưa có học viên nào</div></div>`;
@@ -1003,20 +1001,6 @@ function loadAttStudents() {
   const existing = attendance.find(a => String(a.classId) === String(classId) && a.date === date);
   const records  = existing ? existing.records : {};
 
-  // Count sessions done for each student
-  const totalBuoiMap = {};
-  classStudents.forEach(s => {
-    const attForStudent = attendance.filter(a => String(a.classId) === String(classId));
-    let present = 0;
-    attForStudent.forEach(a => {
-      if (a.records && a.records[s.id] === 'present') present++;
-      // Count makeup sessions done
-      const mk = makeups.filter(m => m.studentId === s.id && m.status === 'done' && m.makeupDate);
-      present += mk.length;
-    });
-    totalBuoiMap[s.id] = present;
-  });
-
   // Extract total sessions from pkg string
   function extractTotalSessions(pkg) {
     if (!pkg) return 0;
@@ -1024,12 +1008,26 @@ function loadAttStudents() {
     return m ? parseInt(m[1]) : 0;
   }
 
+  // Count buổi đã có mặt cho mỗi HV (từ tất cả attendance records của lớp + makeup done)
+  function countDoneSessions(studentId) {
+    let count = 0;
+    attendance.forEach(a => {
+      if (String(a.classId) !== String(classId)) return;
+      if (a.records && a.records[studentId] === 'present') count++;
+    });
+    // Cộng thêm buổi bù đã hoàn thành
+    makeups.forEach(m => {
+      if (String(m.studentId) === String(studentId) && m.status === 'done') count++;
+    });
+    return count;
+  }
+
   let html = `
     <div class="card" style="margin-bottom:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
         <div>
           <div class="card-title" style="margin-bottom:2px;">Điểm Danh: [${cls?cls.code:'?'}] ${cls?cls.name:''}</div>
-          <div style="font-size:12px;color:var(--muted);">Ngày: <b>${new Date(date+'T00:00:00').toLocaleDateString('vi-VN')}</b>${session?' · Buổi số '+session:''} · ${classStudents.length} học viên</div>
+          <div style="font-size:12px;color:var(--muted);">Ngày: <b>${new Date(date+'T00:00:00').toLocaleDateString('vi-VN')}</b>${session?' · Buổi số <b>'+session+'</b>':''} · <b>${classStudents.length}</b> học viên</div>
         </div>
         <button class="btn btn-gold" onclick="saveAttendance('${classId}','${date}')">💾 Lưu Điểm Danh</button>
       </div>
@@ -1038,20 +1036,26 @@ function loadAttStudents() {
   classStudents.forEach(s => {
     const cur = records[s.id] || '';
     const totalPkg = extractTotalSessions(s.pkg);
-    const done = totalBuoiMap[s.id] || 0;
-    const pct  = totalPkg ? Math.min(100, Math.round(done/totalPkg*100)) : 0;
+    const done = countDoneSessions(s.id);
+    const pct  = totalPkg ? Math.min(100, Math.round(done / totalPkg * 100)) : 0;
+    const remaining = totalPkg ? Math.max(0, totalPkg - done) : null;
+    const doneColor = pct >= 100 ? '#16a34a' : pct >= 70 ? '#d97706' : 'var(--gold)';
+
     html += `
       <div class="att-student-row" id="att-row-${s.id}">
-        <div>
+        <div style="flex:1;min-width:0;">
           <div class="att-student-name">${s.name}</div>
-          <div class="att-student-info">${s.subject}${s.pkg?' · '+s.pkg:''}</div>
+          <div class="att-student-info">${s.subject}${s.pkg?' · <span style="color:var(--navy);font-weight:600">'+s.pkg+'</span>':''}</div>
           ${totalPkg ? `
-          <div style="margin-top:6px;width:200px;">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">Tiến độ: ${done}/${totalPkg} buổi (${pct}%)</div>
-            <div class="att-progress"><div class="att-progress-bar" style="width:${pct}%"></div></div>
-          </div>` : ''}
+          <div style="margin-top:6px;max-width:240px;">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:3px;">
+              <span>Tiến độ: <b style="color:${doneColor}">${done}</b>/${totalPkg} buổi</span>
+              <span style="color:${pct>=100?'#16a34a':'var(--muted)'};">${pct>=100?'✅ Hoàn thành':'còn '+remaining+' buổi'}</span>
+            </div>
+            <div class="att-progress"><div class="att-progress-bar" style="width:${pct}%;background:${doneColor};"></div></div>
+          </div>` : `<div style="font-size:10px;color:var(--muted);margin-top:4px;">Chưa có gói – không tính tiến độ</div>`}
         </div>
-        <div class="att-radio-group">
+        <div class="att-radio-group" style="flex-shrink:0;">
           <button class="att-radio-btn${cur==='present'?' present':''}" onclick="setAtt('${s.id}','present',this)">✅ Có Mặt</button>
           <button class="att-radio-btn${cur==='absent-ex'?' absent-ex':''}" onclick="setAtt('${s.id}','absent-ex',this)">📋 Vắng Có Phép</button>
           <button class="att-radio-btn${cur==='absent-no'?' absent-no':''}" onclick="setAtt('${s.id}','absent-no',this)">❌ Vắng Không Phép</button>
@@ -1258,14 +1262,35 @@ function setConsultTab(tab, el) {
   if (el) el.classList.add('active');
   else {
     document.querySelectorAll('#page-consult .filter-tab').forEach(t => {
-      if ((t.textContent||'').includes(tab==='process'?'Quy Trình':tab==='templates'?'Tin Nhắn':'Form')) t.classList.add('active');
+      if ((t.textContent||'').includes(tab==='process'?'Quy Trình':'Tin Nhắn')) t.classList.add('active');
     });
   }
-  ['process','templates','form'].forEach(t => {
+  ['process','templates'].forEach(t => {
     const el = document.getElementById('consult-tab-'+t);
     if (el) el.style.display = t===tab ? '' : 'none';
   });
   if (tab==='templates') renderTemplates();
+}
+
+function generateGroupMsg() {
+  const name   = document.getElementById('cf-name').value.trim();
+  const age    = document.getElementById('cf-age').value.trim();
+  const parent = document.getElementById('cf-parent').value.trim();
+  const course = document.getElementById('cf-course').value.trim();
+  const note   = document.getElementById('cf-note').value.trim();
+  if (!name) { showToast('Vui lòng nhập tên học viên', true); return; }
+  const now = new Date();
+  const timeStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  const text = `KH MỚI – ${timeStr}\n${'─'.repeat(30)}\nHọc Viên  : ${name}\nĐộ Tuổi   : ${age||'–'}\nPH Zalo   : ${parent||'–'}\nMôn Học   : ${course||'–'}\nGhi Chú   : ${note||'–'}\n${'─'.repeat(30)}\nTrạng Thái: Đang tư vấn`;
+  document.getElementById('cf-output').textContent = text;
+  document.getElementById('cf-output-wrap').style.display = 'block';
+}
+
+function copyGroupMsg() {
+  const text = document.getElementById('cf-output').textContent;
+  navigator.clipboard.writeText(text).then(()=>{}).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);});
+  const cf = document.getElementById('cf-copied');
+  cf.style.display='block'; setTimeout(()=>cf.style.display='none',3000);
 }
 
 function renderTemplates() {
@@ -1364,18 +1389,17 @@ function saveLeadFromForm() {
   const name   = document.getElementById('cf-name').value.trim();
   const age    = document.getElementById('cf-age').value.trim();
   const parent = document.getElementById('cf-parent').value.trim();
-  const phone  = document.getElementById('cf-phone').value.trim();
-  const course = document.getElementById('cf-course').value;
-  const source = document.getElementById('cf-source').value;
+  const course = document.getElementById('cf-course').value.trim();
   const note   = document.getElementById('cf-note').value.trim();
-  if (!name||!parent||!phone) { showToast('Vui lòng điền đủ tên HV, tên PH và SĐT', true); return; }
-  leads.push({ id: Date.now(), name, dob:'', parent, phone, course: course||'Chưa xác định', source, status:'Đã tư vấn', note: (age?'Độ tuổi: '+age+'. ':'')+(note||''), createdAt: new Date().toISOString().slice(0,10) });
+  if (!name||!parent) { showToast('Vui lòng điền tên HV và tên phụ huynh', true); return; }
+  leads.push({ id: Date.now(), name, dob:'', parent, phone:'', course: course||'Chưa xác định', source:'Trực tiếp', status:'Đã tư vấn', note: (age?'Độ tuổi: '+age+'. ':'')+(note||''), createdAt: new Date().toISOString().slice(0,10) });
   save(); clearConsultForm(); showToast('Đã lưu vào HV Tiềm Năng!');
 }
 
 function clearConsultForm() {
-  ['cf-name','cf-age','cf-parent','cf-phone','cf-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('cf-course').value='';
+  ['cf-name','cf-age','cf-parent','cf-course','cf-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const wrap = document.getElementById('cf-output-wrap');
+  if (wrap) wrap.style.display='none';
 }
 
 function copyGroupTemplate() {
