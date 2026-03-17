@@ -1302,20 +1302,28 @@ function renderTemplates() {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:40px;"><div class="empty-icon">💬</div><div class="empty-text">Chưa có tin nhắn mẫu nào.<br>Nhấn "+ Thêm Tin Nhắn Mẫu" để tạo mới.</div></div>`;
     return;
   }
-  grid.innerHTML = filtered.map(t => `
-    <div class="template-card">
-      <div class="template-card-header">
-        <span class="template-card-emoji">${t.emoji||'💬'}</span>
-        <div>
-          <div class="template-card-title">${t.course}</div>
+  // Group by course name
+  const groups = {};
+  filtered.forEach(t => {
+    if (!groups[t.course]) groups[t.course] = [];
+    groups[t.course].push(t);
+  });
+  grid.innerHTML = Object.entries(groups).map(([course, items]) => `
+    <div style="background:var(--white);border-radius:var(--r-lg);border:1.5px solid rgba(200,146,42,.12);box-shadow:var(--shadow-sm);overflow:hidden;">
+      <div style="background:var(--navy);padding:12px 16px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">${items[0].emoji||'💬'}</span>
+        <div style="font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;flex:1;">${course}</div>
+        <button onclick="openAddTemplate('${course.replace(/'/g,"\\'")}')" style="background:rgba(246,153,34,.2);border:1px solid rgba(246,153,34,.4);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;">+ Thêm</button>
+      </div>
+      ${items.map(t => `
+      <div style="padding:14px 16px;border-bottom:1px solid var(--cream2);">
+        <div style="background:var(--cream);border-radius:8px;padding:12px;font-size:12px;color:#1a1a1a;line-height:1.75;white-space:pre-wrap;font-family:'Be Vietnam Pro',sans-serif;max-height:160px;overflow-y:auto;margin-bottom:10px;">${t.content}</div>
+        <div style="display:flex;gap:7px;">
+          <button onclick="copyTemplate(${t.id})" style="background:var(--gold);color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;flex:1;">📋 Sao Chép</button>
+          <button onclick="editTemplate(${t.id})" style="background:var(--white);border:1.5px solid var(--cream2);color:var(--navy);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;" title="Chỉnh sửa">✎</button>
+          <button onclick="deleteTemplate(${t.id})" style="background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer;" title="Xóa">🗑</button>
         </div>
-      </div>
-      <div class="template-card-body">${t.content}</div>
-      <div class="template-card-actions">
-        <button class="btn btn-gold" onclick="copyTemplate(${t.id})" style="font-size:10px;padding:6px 14px;">📋 Sao Chép</button>
-        <button class="btn-icon" onclick="editTemplate(${t.id})" title="Sửa">✎</button>
-        <button class="btn-icon del" onclick="deleteTemplate(${t.id})" title="Xóa">✕</button>
-      </div>
+      </div>`).join('')}
     </div>`).join('');
 }
 
@@ -1327,9 +1335,9 @@ function copyTemplate(id) {
   });
 }
 
-function openAddTemplate() {
+function openAddTemplate(prefillCourse) {
   editTemplateId = null;
-  document.getElementById('tpl-course').value  = '';
+  document.getElementById('tpl-course').value  = prefillCourse || '';
   document.getElementById('tpl-emoji').value   = '';
   document.getElementById('tpl-content').value = '';
   document.getElementById('template-modal-title').textContent = 'Thêm Tin Nhắn Mẫu';
