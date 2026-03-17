@@ -636,56 +636,77 @@
 <!-- ─── TƯ VẤN ─── -->
 <div id="page-consult" class="page">
   <div class="page-header">
-    <div class="page-title">Quy Trình <span>Tư Vấn</span></div>
-    <div class="page-sub">Hướng dẫn tư vấn & kho tin nhắn mẫu sẵn sàng sao chép</div>
+    <div class="page-title">Tư Vấn & <span>Mẫu Tin Nhắn</span></div>
+    <div class="page-sub">Quy trình tư vấn chuẩn + kho mẫu tin nhắn theo từng khóa học</div>
   </div>
 
   <!-- Tab chọn -->
   <div class="filter-tabs" style="margin-bottom:18px;">
-    <button class="filter-tab active" onclick="setConsultTab('process',this)">📋 Quy Trình Tư Vấn</button>
+    <button class="filter-tab active" onclick="setConsultTab('process',this)">📋 Quy Trình & Form</button>
     <button class="filter-tab" onclick="setConsultTab('templates',this)">💬 Tin Nhắn Mẫu</button>
-    <button class="filter-tab" onclick="setConsultTab('form',this)">📝 Form Thu Thập Thông Tin</button>
   </div>
 
-  <!-- Tab 1: Quy trình -->
+  <!-- Tab 1: Quy trình + Form -->
   <div id="consult-tab-process">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">QUY TRÌNH TƯ VẤN CHUẨN</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+        <div style="background:#e0f2fe;border-radius:12px;padding:16px;">
+          <div style="font-size:28px;font-weight:900;color:#0369a1;line-height:1;">1</div>
+          <div style="font-size:11px;font-weight:800;color:#0369a1;margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px;">TIẾP NHẬN</div>
+          <div style="font-size:11.5px;color:#0c4a6e;line-height:1.6;">Xin tên học viên, độ tuổi, tên phụ huynh (Zalo), môn học quan tâm</div>
+        </div>
+        <div style="background:#fef9c3;border-radius:12px;padding:16px;">
+          <div style="font-size:28px;font-weight:900;color:#a16207;line-height:1;">2</div>
+          <div style="font-size:11px;font-weight:800;color:#a16207;margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px;">GHI NOTE</div>
+          <div style="font-size:11.5px;color:#78350f;line-height:1.6;">Ghi lại mong muốn, thời gian rảnh, mục tiêu học (thi chứng chỉ / học chơi...)</div>
+        </div>
+        <div style="background:#dcfce7;border-radius:12px;padding:16px;">
+          <div style="font-size:28px;font-weight:900;color:#15803d;line-height:1;">3</div>
+          <div style="font-size:11px;font-weight:800;color:#15803d;margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px;">GỬI THÔNG TIN</div>
+          <div style="font-size:11.5px;color:#14532d;line-height:1.6;">Copy mẫu tin nhắn phù hợp (bên dưới) và gửi cho phụ huynh qua Zalo</div>
+        </div>
+        <div style="background:#ede9fe;border-radius:12px;padding:16px;">
+          <div style="font-size:28px;font-weight:900;color:#6d28d9;line-height:1;">4</div>
+          <div style="font-size:11px;font-weight:800;color:#6d28d9;margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px;">BÁO NHÓM</div>
+          <div style="font-size:11.5px;color:#4c1d95;line-height:1.6;">Tổng hợp: Tên HV – Độ tuổi – PH Zalo – Môn học – Ghi chú → gửi vào nhóm chung</div>
+        </div>
+        <div style="background:#fce7f3;border-radius:12px;padding:16px;">
+          <div style="font-size:28px;font-weight:900;color:#be185d;line-height:1;">5</div>
+          <div style="font-size:11px;font-weight:800;color:#be185d;margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px;">CHỐT & LƯU</div>
+          <div style="font-size:11.5px;color:#831843;line-height:1.6;">Nếu đồng ý: thêm vào mục HV Tiềm Năng → chuyển sang Đã Đăng Ký khi đóng tiền</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form soạn tin báo nhóm nhanh -->
     <div class="card">
-      <div class="card-title">Quy Trình Tư Vấn Chuẩn</div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div class="consult-step" style="background:#f0f9ff;border-left:4px solid #0ea5e9;">
-          <div style="font-size:11px;font-weight:800;color:#0369a1;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bước 1 — Thu Thập Thông Tin</div>
-          <div style="font-size:12.5px;color:#0c4a6e;line-height:1.8;">
-            Hỏi và ghi nhận: <b>Tên học viên</b>, <b>Độ tuổi</b>, <b>Tên phụ huynh</b>, <b>Môn học quan tâm</b>, <b>Lưu ý đặc biệt</b> (sở thích, mục tiêu, thời gian rảnh).
-          </div>
+      <div class="card-title">SOẠN TIN BÁO NHÓM NHANH</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="form-group"><label>TÊN HỌC VIÊN</label><input id="cf-name" type="text" placeholder="Nguyễn Văn A"></div>
+        <div class="form-group"><label>ĐỘ TUỔI</label><input id="cf-age" type="text" placeholder="8 tuổi"></div>
+        <div class="form-group"><label>TÊN PH (ZALO)</label><input id="cf-parent" type="text" placeholder="Nguyễn Thị B"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div class="form-group"><label>MÔN HỌC</label>
+          <input id="cf-course" type="text" placeholder="Piano, Guitar, Violin...">
         </div>
-        <div class="consult-step" style="background:#f0fdf4;border-left:4px solid #16a34a;">
-          <div style="font-size:11px;font-weight:800;color:#15803d;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bước 2 — Tổng Hợp & Gửi Nhóm</div>
-          <div style="font-size:12.5px;color:#14532d;line-height:1.8;">
-            Người tư vấn tổng hợp thông tin và gửi vào <b>nhóm chung</b> theo mẫu dưới đây. Sau đó chọn tin nhắn mẫu phù hợp theo môn học để gửi cho phụ huynh.
-          </div>
-          <div style="margin-top:10px;background:#dcfce7;border-radius:8px;padding:12px;">
-            <div style="font-size:10px;font-weight:700;color:#15803d;margin-bottom:6px;letter-spacing:1px;">MẪU GỬI NHÓM:</div>
-            <pre style="font-size:12px;color:#14532d;white-space:pre-wrap;font-family:'Be Vietnam Pro',sans-serif;line-height:1.7;">HV MỚI 🎵
-- Tên HV: [Tên học viên]
-- Độ tuổi: [Tuổi]
-- Phụ huynh: [Tên PH]
-- SĐT: [Số điện thoại]
-- Môn quan tâm: [Môn học]
-- Lưu ý: [Ghi chú thêm]</pre>
-            <button onclick="copyGroupTemplate()" class="btn btn-outline" style="font-size:10px;padding:5px 12px;margin-top:6px;">📋 Sao Chép Mẫu</button>
-          </div>
+        <div class="form-group"><label>GHI CHÚ</label>
+          <input id="cf-note" type="text" placeholder="Mục tiêu học, thời gian rảnh...">
         </div>
-        <div class="consult-step" style="background:#fefce8;border-left:4px solid #ca8a04;">
-          <div style="font-size:11px;font-weight:800;color:#92400e;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bước 3 — Gửi Tin Nhắn Tư Vấn</div>
-          <div style="font-size:12.5px;color:#78350f;line-height:1.8;">
-            Vào tab <b>Tin Nhắn Mẫu</b> → chọn môn học → sao chép → gửi cho phụ huynh. Nội dung đã được chuẩn bị sẵn, chỉ cần <b>Ctrl+C → Ctrl+V</b>.
-          </div>
+      </div>
+      <button class="btn btn-gold" onclick="generateGroupMsg()" style="margin-bottom:14px;">TẠO TIN BÁO NHÓM</button>
+
+      <!-- Output box -->
+      <div id="cf-output-wrap" style="display:none;">
+        <div style="position:relative;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:16px 48px 16px 16px;">
+          <pre id="cf-output" style="font-size:12.5px;color:#1a1a1a;font-family:'Be Vietnam Pro',sans-serif;line-height:1.8;white-space:pre-wrap;"></pre>
+          <button onclick="copyGroupMsg()" style="position:absolute;top:10px;right:10px;background:var(--navy);color:#fff;border:none;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;">Copy</button>
         </div>
-        <div class="consult-step" style="background:#fdf4ff;border-left:4px solid #9333ea;">
-          <div style="font-size:11px;font-weight:800;color:#6b21a8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bước 4 — Lưu Vào Hệ Thống</div>
-          <div style="font-size:12.5px;color:#581c87;line-height:1.8;">
-            Vào <b>HV Tiềm Năng</b> → Thêm mới → điền thông tin → chọn tình trạng phù hợp (Chưa liên hệ / Đã tư vấn / Đã đăng ký học).
-          </div>
+        <div id="cf-copied" style="display:none;margin-top:8px;font-size:12px;color:#16a34a;font-weight:700;">✅ Đã sao chép! Dán vào Zalo nhóm.</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn" onclick="saveLeadFromForm()" style="background:#16a34a;color:#fff;border:none;font-size:11px;">💾 Lưu vào HV Tiềm Năng</button>
+          <button class="btn btn-outline" onclick="clearConsultForm()" style="font-size:11px;">↺ Xóa Trắng</button>
         </div>
       </div>
     </div>
@@ -697,45 +718,7 @@
       <input class="search-box" id="template-search" type="text" placeholder="🔍 Tìm theo tên môn học..." oninput="renderTemplates()">
       <button class="btn btn-gold" onclick="openAddTemplate()">+ Thêm Tin Nhắn Mẫu</button>
     </div>
-    <div id="templates-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;"></div>
-  </div>
-
-  <!-- Tab 3: Form thu thập -->
-  <div id="consult-tab-form" style="display:none;">
-    <div class="card">
-      <div class="card-title">Form Thu Thập Thông Tin Khách Hàng</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Điền nhanh trong lúc tư vấn, sau đó sao chép gửi nhóm hoặc lưu vào HV Tiềm Năng.</div>
-      <div class="form-grid">
-        <div class="form-group"><label>Tên Học Viên *</label><input id="cf-name" type="text" placeholder="Nguyễn Văn A"></div>
-        <div class="form-group"><label>Độ Tuổi</label><input id="cf-age" type="text" placeholder="VD: 8 tuổi"></div>
-        <div class="form-group"><label>Tên Phụ Huynh *</label><input id="cf-parent" type="text" placeholder="Nguyễn Thị B"></div>
-        <div class="form-group"><label>Số Điện Thoại *</label><input id="cf-phone" type="tel" placeholder="0901 234 567"></div>
-        <div class="form-group"><label>Môn Học Quan Tâm</label>
-          <select id="cf-course">
-            <option value="">-- Chọn môn --</option>
-            <option>Piano</option><option>Guitar</option><option>Violin</option><option>Ukulele</option>
-            <option>Piano Đệm Hát</option><option>Trống</option><option>Thanh Nhạc</option>
-            <option>Vẽ Mầm Non</option><option>Vẽ Căn Bản</option><option>Ballet (3-5 tuổi)</option>
-            <option>Ballet (6-9 tuổi)</option><option>Dance</option><option>Khiêu Vũ</option>
-            <option>Múa Cổ Trang</option><option>Luyện Thi</option><option>Cảm Thụ Âm Nhạc</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Nguồn</label>
-          <select id="cf-source">
-            <option>Trực tiếp</option><option>Facebook</option><option>Tiktok</option>
-          </select>
-        </div>
-        <div class="form-group full"><label>Lưu Ý / Mong Muốn</label>
-          <textarea id="cf-note" rows="2" placeholder="Mục tiêu học, thời gian rảnh, yêu cầu đặc biệt..."></textarea>
-        </div>
-      </div>
-      <div style="margin-top:14px;padding-top:14px;border-top:1.5px solid var(--cream2);display:flex;gap:9px;flex-wrap:wrap;">
-        <button class="btn btn-gold" onclick="copyConsultForm()">📋 Sao Chép Gửi Nhóm</button>
-        <button class="btn" onclick="saveLeadFromForm()" style="background:#16a34a;color:#fff;border:none;">💾 Lưu vào HV Tiềm Năng</button>
-        <button class="btn btn-outline" onclick="clearConsultForm()">↺ Xóa Trắng</button>
-      </div>
-      <div id="cf-copied" style="display:none;margin-top:10px;background:#dcfce7;border-radius:8px;padding:10px 14px;font-size:12px;color:#15803d;font-weight:600;">✅ Đã sao chép! Dán vào Zalo nhóm.</div>
-    </div>
+    <div id="templates-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>
   </div>
 </div>
 
