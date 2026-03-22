@@ -96,7 +96,15 @@ const CD={
   hocthu:{name:'HỌC THỬ',emoji:'⭐',sections:[{title:'Các Loại Học Thử',rows:[{desc:'Học thử lớp nhóm',amount:100000},{desc:'Học thử 2-1',amount:250000},{desc:'Học thử 1-1',amount:500000}]}]},
   camthu:{name:'CẢM THỤ ÂM NHẠC',emoji:'🎼',sections:[{title:'Cảm Thụ Âm Nhạc Miễn Phí',rows:[{desc:'Lớp nhóm · 24 buổi · Miễn phí',amount:0}]}]},
   pianodemhat:{name:'PIANO ĐỆM HÁT',emoji:'🎹🎤',sections:[{title:'Lớp Thông Thường',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:5400000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 3-1 · 1 tháng/8 buổi',amount:2000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:2700000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]},
-  trong:{name:'TRỐNG',emoji:'🥁',sections:[{title:'Lớp Thông Thường',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:5400000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 3-1 · 1 tháng/8 buổi',amount:2000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:2700000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]}
+  trong:{name:'TRỐNG',emoji:'🥁',sections:[{title:'Lớp Thông Thường',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:5400000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:7200000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:12000000},{desc:'Lớp 3-1 · 1 tháng/8 buổi',amount:2000000},{desc:'Lớp 2-1 · 1 tháng/8 buổi',amount:2600000},{desc:'Lớp 1-1 · 1 tháng/8 buổi',amount:4200000}]},{title:'Đóng 2 Lần (Ưu Đãi)',rows:[{desc:'Lớp 3-1 · 3 tháng/24 buổi',amount:2700000},{desc:'Lớp 2-1 · 3 tháng/24 buổi',amount:3600000},{desc:'Lớp 1-1 · 3 tháng/24 buổi',amount:6000000}]}]},
+  khac:{name:'MỤC KHÁC',emoji:'🗂️',sections:[
+    {title:'⭐ Học Thử',rows:[{desc:'Học thử lớp nhóm (10:1)',amount:100000},{desc:'Học thử 2-1',amount:250000},{desc:'Học thử 1-1',amount:500000}]},
+    {title:'🩰 Đồ Ballet',rows:[{desc:'Đồ rời – Size 130(4bộ) · 140(2bộ) · 150(2bộ) · 160(1bộ) · 170(1bộ)',amount:300000},{desc:'Đồ liền',amount:200000}]},
+    {title:'📚 Sách',rows:[{desc:'Sách Grade',amount:50000},{desc:'Sách Faber AVT (in VN: 250k / in Mỹ: 450k)',amount:60000},{desc:'Sách Guitar',amount:50000},{desc:'Sách người lớn',amount:100000}]},
+    {title:'👟 Giày & Tất',rows:[{desc:'Giày 1 đôi lớn',amount:150000},{desc:'Giày 1 đôi bé cao cấp',amount:120000},{desc:'Giày 1 đôi bé thường',amount:60000},{desc:'Tất 1 đôi',amount:50000}]},
+    {title:'🏠 Phòng Nhảy',rows:[{desc:'Phòng lớn Tầng 1 (không ML: 230k)',amount:300000},{desc:'Phòng nhỏ Tầng 2 (không ML: 200k)',amount:250000},{desc:'Thuê tháng từ 1 tháng',amount:5000000},{desc:'Thuê tháng từ 3 tháng',amount:4000000}]},
+    {title:'🎹 Thuê Phòng Piano',rows:[{desc:'Theo giờ (check lịch trống)',amount:150000},{desc:'Gói 3 tháng – 2 buổi/tuần cố định',amount:3000000}]}
+  ]}
 };
 
 function getAllCourses() {
@@ -444,13 +452,68 @@ function renderStaffTable(){
 }
 
 // ── LEADS ──
+// Show/hide học thử fields based on status
+function onLeadStatusChange() {
+  const status = document.getElementById('lf-status').value;
+  const isHocThu = status === 'Đăng ký học thử';
+  ['lf-hocthu-wrap','lf-hocthu-fee-wrap','lf-dungcu-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isHocThu ? '' : 'none';
+  });
+  if (isHocThu && !document.getElementById('lf-dungcu-rows').children.length) {
+    // keep empty, user can add
+  }
+}
+
+function addDungcuRow(name='', price=0) {
+  const wrap = document.getElementById('lf-dungcu-rows');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  div.innerHTML = `
+    <input type="text" class="search-box dc-name" placeholder="Tên dụng cụ (VD: Sách Grade)" value="${name}" style="flex:2;padding:7px 10px;font-size:12px;" oninput="calcDungcuTotal()">
+    <input type="number" class="search-box dc-price" placeholder="Giá (đ)" value="${price||''}" min="0" style="flex:1;padding:7px 10px;font-size:12px;" oninput="calcDungcuTotal()">
+    <button type="button" class="btn-icon del" onclick="this.parentElement.remove();calcDungcuTotal();" title="Xóa">✕</button>`;
+  wrap.appendChild(div);
+  calcDungcuTotal();
+}
+
+function calcDungcuTotal() {
+  let total = 0;
+  document.querySelectorAll('#lf-dungcu-rows .dc-price').forEach(el => {
+    total += Number(el.value) || 0;
+  });
+  const t = document.getElementById('lf-dungcu-total');
+  if (t) t.textContent = total.toLocaleString('vi-VN') + ' đ';
+}
+
+function getDungcuItems() {
+  const items = [];
+  document.querySelectorAll('#lf-dungcu-rows > div').forEach(div => {
+    const name = div.querySelector('.dc-name').value.trim();
+    const price = Number(div.querySelector('.dc-price').value) || 0;
+    if (name) items.push({ name, price });
+  });
+  return items;
+}
+
 function saveLead() {
   const g = id => document.getElementById(id).value.trim ? document.getElementById(id).value.trim() : document.getElementById(id).value;
   const name=g('lf-name'),dob=g('lf-dob'),parent=g('lf-parent'),phone=g('lf-phone'),
         course=g('lf-course'),source=g('lf-source'),status=g('lf-status'),note=g('lf-note');
   if (!name||!parent||!phone||!course||!source||!status) { showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', true); return; }
   const existing = editLeadId ? (leads.find(l => l.id === editLeadId) || {}) : {};
-  const obj = { id: editLeadId || Date.now(), name, dob, parent, phone, course, source, status, note, createdAt: existing.createdAt || new Date().toISOString().slice(0,10) };
+  // Học thử
+  const hocThuTypeSel = document.getElementById('lf-hocthu-type');
+  const hocThuFeeSel  = document.getElementById('lf-hocthu-fee');
+  const hocThuType = hocThuTypeSel ? hocThuTypeSel.options[hocThuTypeSel.selectedIndex]?.text || '' : '';
+  const hocThuFee  = hocThuFeeSel  ? Number(hocThuFeeSel.value) || 0 : 0;
+  // Dụng cụ
+  const dungcu = getDungcuItems();
+  const dungcuTotal = dungcu.reduce((a,i) => a+i.price, 0);
+  const totalThu = hocThuFee + dungcuTotal;
+  const obj = { id: editLeadId || Date.now(), name, dob, parent, phone, course, source, status, note,
+    hocThuType, hocThuFee, dungcu, dungcuTotal, totalThu,
+    createdAt: existing.createdAt || new Date().toISOString().slice(0,10) };
   if (editLeadId !== null) {
     const i = leads.findIndex(l => l.id === editLeadId);
     if (i !== -1) leads[i] = obj;
@@ -458,12 +521,20 @@ function saveLead() {
   } else leads.push(obj);
   save(); showToast('Đã lưu học viên tiềm năng!'); clearLeadForm(); showPage('leads');
 }
+
 function clearLeadForm() {
   ['lf-name','lf-dob','lf-parent','lf-phone','lf-note'].forEach(id => document.getElementById(id).value = '');
   ['lf-course','lf-source','lf-status'].forEach(id => document.getElementById(id).value = '');
+  const ht = document.getElementById('lf-hocthu-type'); if(ht) ht.value='';
+  const hf = document.getElementById('lf-hocthu-fee'); if(hf) hf.value='';
+  const dr = document.getElementById('lf-dungcu-rows'); if(dr) dr.innerHTML='';
+  ['lf-hocthu-wrap','lf-hocthu-fee-wrap','lf-dungcu-wrap'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.style.display='none';
+  });
   editLeadId = null;
   document.getElementById('lead-form-title').innerHTML = 'Thêm <span>HV Tiềm Năng</span>';
 }
+
 function editLead(id) {
   const l = leads.find(x => x.id === id); if (!l) return;
   editLeadId = id;
@@ -475,9 +546,17 @@ function editLead(id) {
   document.getElementById('lf-source').value = l.source;
   document.getElementById('lf-status').value = l.status;
   document.getElementById('lf-note').value   = l.note||'';
+  // Restore học thử
+  onLeadStatusChange();
+  const ht = document.getElementById('lf-hocthu-type'); if(ht && l.hocThuFee) ht.value = l.hocThuFee;
+  const hf = document.getElementById('lf-hocthu-fee'); if(hf) hf.value = l.hocThuFee||'';
+  // Restore dụng cụ
+  const dr = document.getElementById('lf-dungcu-rows'); if(dr) dr.innerHTML='';
+  (l.dungcu||[]).forEach(dc => addDungcuRow(dc.name, dc.price));
   document.getElementById('lead-form-title').innerHTML = 'Chỉnh Sửa <span>HV Tiềm Năng</span>';
   showPage('add-lead');
 }
+
 function deleteLead(id) {
   const l = leads.find(x => x.id === id); if (!l) return;
   confirmDelete(l.name, () => {
@@ -486,31 +565,41 @@ function deleteLead(id) {
     showToast('Đã xóa học viên tiềm năng ' + l.name + '.');
   });
 }
+
 function setLeadFilter(f, el) {
   leadFilter = f;
   document.querySelectorAll('#page-leads .filter-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   renderLeadTable();
 }
+
 function renderLeadTable() {
   const q = (document.getElementById('lead-search').value || '').toLowerCase();
   const filtered = leads.filter(l => {
-    const mq = !q || l.name.toLowerCase().includes(q) || l.phone.includes(q) || l.course.toLowerCase().includes(q) || (l.parent && l.parent.toLowerCase().includes(q));
+    const mq = !q || l.name.toLowerCase().includes(q) || (l.phone||'').includes(q) || (l.course||'').toLowerCase().includes(q) || (l.parent||'').toLowerCase().includes(q);
     const mf = leadFilter === 'all' || l.status === leadFilter || l.source === leadFilter;
     return mq && mf;
   });
   const tbody = document.getElementById('lead-table-body');
-  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-text">Không tìm thấy học viên tiềm năng nào</div></div></td></tr>`; return; }
+  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-text">Không tìm thấy học viên tiềm năng nào</div></div></td></tr>`; return; }
   const srcBadge = s => {
-    if (s === 'Facebook') return `<span class="badge badge-src-fb">📘 Facebook</span>`;
-    if (s === 'Tiktok')   return `<span class="badge badge-src-tt">🎵 Tiktok</span>`;
-    return `<span class="badge badge-src-direct">🏠 Trực Tiếp</span>`;
+    if (s === 'Facebook') return `<span class="badge badge-src-fb">📘 FB</span>`;
+    if (s === 'Tiktok')   return `<span class="badge badge-src-tt">🎵 TT</span>`;
+    return `<span class="badge badge-src-direct">🏠 TT</span>`;
   };
-  const stBadge = s => s === 'Đã tư vấn'
-    ? `<span class="badge badge-consulted">✓ Đã Tư Vấn</span>`
-    : `<span class="badge badge-new">○ Chưa Liên Hệ</span>`;
-  tbody.innerHTML = filtered.map((l, i) => `
-    <tr>
+  const stBadge = s => {
+    if (s === 'Đã tư vấn')        return `<span class="badge badge-consulted">✓ Đã TV</span>`;
+    if (s === 'Đăng ký học thử')  return `<span class="badge" style="background:#fef9c3;color:#713f12;border:1.5px solid #fcd34d;">⭐ HT</span>`;
+    if (s === 'Đã đăng ký học')   return `<span class="badge" style="background:#dcfce7;color:#15803d;border:1.5px solid #4ade80;">✅ ĐK</span>`;
+    return `<span class="badge badge-new">○ Chưa LH</span>`;
+  };
+  tbody.innerHTML = filtered.map((l, i) => {
+    const hocThuFmt = l.hocThuFee ? `<div style="font-size:11px;color:var(--navy);font-weight:600;">${l.hocThuType||'Học thử'}</div><div style="font-size:11px;color:var(--gold);font-weight:700;">${Number(l.hocThuFee).toLocaleString('vi-VN')} đ</div>` : '–';
+    const dungcuFmt = (l.dungcu||[]).length
+      ? `<div style="font-size:10.5px;color:var(--navy);">${l.dungcu.map(d=>`${d.name}: ${Number(d.price).toLocaleString('vi-VN')}đ`).join('<br>')}</div>`
+      : '–';
+    const totalFmt = (l.totalThu||0) > 0 ? `<span style="font-weight:800;color:var(--gold);">${Number(l.totalThu).toLocaleString('vi-VN')} đ</span>` : '–';
+    return `<tr>
       <td>${i+1}</td>
       <td class="td-name">${l.name}</td>
       <td>${fmtDate(l.dob)}</td>
@@ -519,12 +608,16 @@ function renderLeadTable() {
       <td style="font-weight:600;color:var(--navy)">${l.course}</td>
       <td>${srcBadge(l.source)}</td>
       <td>${stBadge(l.status)}</td>
-      <td style="font-size:11px;color:var(--muted);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.note||''}">${l.note||'–'}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.note||''}">${l.note||'–'}</td>
+      <td>${hocThuFmt}</td>
+      <td>${dungcuFmt}</td>
+      <td>${totalFmt}</td>
       <td><div class="action-btns">
         <button class="btn-icon" onclick="editLead(${l.id})" title="Sửa">✎</button>
         <button class="btn-icon del" onclick="deleteLead(${l.id})" title="Xóa">✕</button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ── REVENUE ──
@@ -556,10 +649,21 @@ function renderRevenue(){
     const d=new Date(s.start);
     return d.getFullYear()===y&&(d.getMonth()+1)===m;
   });
-  const total=paid.reduce((a,s)=>a+Number(s.amount||0),0);
+  // Thu từ leads (học thử + dụng cụ) trong tháng
+  const paidLeads = leads.filter(l => {
+    if (!l.totalThu || l.totalThu <= 0) return false;
+    const d = new Date(l.createdAt||'');
+    return d.getFullYear()===y && (d.getMonth()+1)===m;
+  });
+  const leadRevenue = paidLeads.reduce((a,l) => a + Number(l.totalThu||0), 0);
+
+  const studentTotal = paid.reduce((a,s)=>a+Number(s.amount||0),0);
+  const total = studentTotal + leadRevenue;
+
   document.getElementById('rev-total-value').textContent=fmt(total);
-  document.getElementById('rev-total-count').textContent=paid.length;
+  document.getElementById('rev-total-count').textContent=paid.length + paidLeads.length;
   document.getElementById('rev-unpaid-count').textContent=unpaidMonth.length;
+
   const breakdown={};
   paid.forEach(s=>{
     const key=s.subject||'Khác';
@@ -567,19 +671,22 @@ function renderRevenue(){
     breakdown[key].total+=Number(s.amount||0);
     breakdown[key].count++;
   });
+  if (leadRevenue > 0) {
+    breakdown['Học Thử & Dụng Cụ'] = { total: leadRevenue, count: paidLeads.length };
+  }
   const bEl=document.getElementById('rev-breakdown');
   const entries=Object.entries(breakdown).sort((a,b)=>b[1].total-a[1].total);
   bEl.innerHTML=entries.length?entries.map(([k,v])=>`
     <div class="rev-cat">
       <div class="rev-cat-name">${k}</div>
       <div class="rev-cat-amount">${fmt(v.total)}</div>
-      <div class="rev-cat-count">${v.count} học viên</div>
+      <div class="rev-cat-count">${v.count} khoản</div>
     </div>`).join(''):'<p style="color:var(--muted);font-size:13px;padding:12px 0;">Không có dữ liệu trong tháng này.</p>';
+
   const tbody=document.getElementById('rev-table-body');
   const pb=p=>p==='Đã Chuyển Khoản'?`<span class="badge badge-paid">✓ CK</span>`:`<span class="badge badge-cash">💵 TM</span>`;
-  if(!paid.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">Chưa có khoản thu nào trong tháng này</div></div></td></tr>`;return;}
-  tbody.innerHTML=paid.map((s,i)=>`
-    <tr>
+  const allRows = [
+    ...paid.map((s,i)=>`<tr>
       <td>${i+1}</td>
       <td class="td-name">${s.name}</td>
       <td style="color:var(--navy);font-weight:600">${s.subject}</td>
@@ -587,7 +694,19 @@ function renderRevenue(){
       <td style="font-weight:800;color:var(--gold)">${fmt(s.amount)}</td>
       <td>${fmtDate(s.paydate)}</td>
       <td>${pb(s.payment)}</td>
-    </tr>`).join('');
+    </tr>`),
+    ...paidLeads.map((l,i)=>`<tr style="background:#fefce8;">
+      <td>${paid.length+i+1}</td>
+      <td class="td-name">${l.name}</td>
+      <td style="color:var(--navy);font-weight:600">${l.hocThuType||'Học Thử/Dụng Cụ'}</td>
+      <td style="font-size:11px;color:var(--muted)">${(l.dungcu||[]).map(d=>d.name).join(', ')||'–'}</td>
+      <td style="font-weight:800;color:var(--gold)">${fmt(l.totalThu)}</td>
+      <td>${fmtDate(l.createdAt)}</td>
+      <td><span class="badge badge-cash">💵 Mục Khác</span></td>
+    </tr>`),
+  ];
+  if(!allRows.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">Chưa có khoản thu nào trong tháng này</div></div></td></tr>`;return;}
+  tbody.innerHTML = allRows.join('');
 }
 
 // ── DASHBOARD ──
@@ -1496,52 +1615,482 @@ function importBackup() {
   input.click();
 }
 
-// ── SEED TIN NHẮN MẪU (chạy 1 lần nếu chưa có) ──
+// ── SEED TIN NHẮN MẪU ──
 function seedTemplatesIfEmpty() {
   if (templates.length > 0) return;
+  const NOTE = 'Anh/chị có thể tham gia buổi học thử trước khi đăng ký lớp chính thức ạ.';
+  const NOTE11 = 'Anh/chị có thể tham gia buổi học thử (500.000đ) trước khi đăng ký lớp chính thức ạ.';
   const seed = [
-    { course:'Guitar', emoji:'🎸', variants:[
-      { label:'Lớp Nhóm (3 HV)', fee:'5.400.000đ', content:`🎸 GUITAR — LỚP NHÓM (3 HỌC VIÊN)\n💰 Học phí: 5.400.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen guitar và kỹ thuật cơ bản\n2️⃣ Học hợp âm, tiết tấu\n3️⃣ Học cách đệm các bài hát quen thuộc\n4️⃣ Thực hành đệm và biểu diễn các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm và trò chuyện với nhạc cụ một cách tự tin.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 2-1 (2 HV)', fee:'7.200.000đ', content:`🎸 GUITAR — LỚP 2-1 (2 HỌC VIÊN)\n💰 Học phí: 7.200.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen guitar và kỹ thuật cơ bản\n2️⃣ Học hợp âm, tiết tấu\n3️⃣ Học cách đệm các bài hát quen thuộc\n4️⃣ Thực hành đệm và biểu diễn các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm và trình diễn tự tin cùng nhạc cụ.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 1-1 (Cá Nhân)', fee:'12.000.000đ', content:`🎸 GUITAR — LỚP 1-1 (HỌC CÁ NHÂN)\n💰 Học phí: 12.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen guitar và kỹ thuật cơ bản\n2️⃣ Học hợp âm, tiết tấu\n3️⃣ Học cách đệm các bài hát quen thuộc\n4️⃣ Thực hành đệm và biểu diễn các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm và trình diễn tự tin cùng nhạc cụ.\nAnh/chị có thể tham gia buổi học trải nghiệm (500.000đ) trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Guitar', emoji:'🎸', items:[
+      { c:`🎸 GUITAR — LỚP 3-1 (NHÓM)
+💰 Học phí: 5.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen guitar và kỹ thuật cơ bản
+2️⃣ Học hợp âm, tiết tấu
+3️⃣ Đệm các bài hát quen thuộc
+4️⃣ Thực hành biểu diễn bài yêu thích
+
+✨ Sau khóa, HV tự đệm và trò chuyện với nhạc cụ tự tin.
+${NOTE}` },
+      { c:`🎸 GUITAR — LỚP 2-1 (2 HỌC VIÊN)
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen guitar và kỹ thuật cơ bản
+2️⃣ Học hợp âm, tiết tấu
+3️⃣ Đệm các bài hát quen thuộc
+4️⃣ Thực hành biểu diễn bài yêu thích
+
+✨ Sau khóa, HV tự đệm và trình diễn tự tin.
+${NOTE}` },
+      { c:`🎸 GUITAR — LỚP 1-1 (CÁ NHÂN)
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen guitar và kỹ thuật cơ bản
+2️⃣ Học hợp âm, tiết tấu
+3️⃣ Đệm các bài hát quen thuộc
+4️⃣ Thực hành biểu diễn bài yêu thích
+
+✨ Sau khóa, HV tự đệm và trình diễn tự tin.
+${NOTE11}` },
     ]},
-    { course:'Violin', emoji:'🎻', variants:[
-      { label:'Lớp Nhóm (3 HV)', content:`🎻 VIOLIN — LỚP NHÓM (3 HỌC VIÊN)\n💰 Học phí: 5.400.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen violin và tư thế cầm đàn đúng\n2️⃣ Học kỹ thuật kéo vĩ cung cơ bản\n3️⃣ Học đọc nhạc và luyện tập giai điệu\n4️⃣ Thực hành biểu diễn các bản nhạc đơn giản\n\n✨ Sau khóa học, học viên có thể chơi được các bản nhạc cơ bản và tự tin biểu diễn.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 2-1 (2 HV)', content:`🎻 VIOLIN — LỚP 2-1 (2 HỌC VIÊN)\n💰 Học phí: 7.200.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen violin và tư thế cầm đàn đúng\n2️⃣ Học kỹ thuật kéo vĩ cung cơ bản\n3️⃣ Học đọc nhạc và luyện tập giai điệu\n4️⃣ Thực hành biểu diễn các bản nhạc đơn giản\n\n✨ Sau khóa học, học viên có thể chơi được các bản nhạc cơ bản và tự tin biểu diễn.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 1-1 (Cá Nhân)', content:`🎻 VIOLIN — LỚP 1-1 (HỌC CÁ NHÂN)\n💰 Học phí: 12.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen violin và tư thế cầm đàn đúng\n2️⃣ Học kỹ thuật kéo vĩ cung cơ bản\n3️⃣ Học đọc nhạc và luyện tập giai điệu\n4️⃣ Thực hành biểu diễn các bản nhạc đơn giản\n\n✨ Sau khóa học, học viên có thể chơi được các bản nhạc cơ bản và tự tin biểu diễn.\nAnh/chị có thể tham gia buổi học trải nghiệm (500.000đ) trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Luyện Thi Guitar', emoji:'🏆', items:[
+      { c:`🏆 LUYỆN THI GUITAR — LUYỆN 3-1
+💰 Học phí: 6.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế guitar – trình độ nhóm 3-1.
+
+✨ HV được chuẩn bị kỹ càng cho kỳ thi chứng chỉ quốc tế.
+${NOTE}` },
+      { c:`🏆 LUYỆN THI GUITAR — LUYỆN 2-1
+💰 Học phí: 8.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế guitar – trình độ 2-1.
+
+✨ HV được chuẩn bị kỹ càng cho kỳ thi chứng chỉ quốc tế.
+${NOTE}` },
+      { c:`🏆 LUYỆN THI GUITAR — LUYỆN 1-1 (CÁ NHÂN)
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế guitar – cá nhân chuyên sâu.
+
+✨ HV được chuẩn bị tốt nhất cho kỳ thi.
+${NOTE11}` },
     ]},
-    { course:'Piano', emoji:'🎹', variants:[
-      { label:'Lớp Nhóm (3 HV)', content:`🎹 PIANO — LỚP NHÓM (3 HỌC VIÊN)\n💰 Học phí: 5.400.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen piano và hợp âm cơ bản\n2️⃣ Học đọc nhạc và luyện ngón tay\n3️⃣ Học đệm và chơi các bản nhạc đơn giản\n4️⃣ Thực hành chơi các bài nhạc yêu thích\n\n✨ Sau khóa học, học viên có thể tự chơi piano và đệm hát một số bài hát phổ biến.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 2-1 (2 HV)', content:`🎹 PIANO — LỚP 2-1 (2 HỌC VIÊN)\n💰 Học phí: 7.200.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen piano và hợp âm cơ bản\n2️⃣ Học đọc nhạc và luyện ngón tay\n3️⃣ Học đệm và chơi các bản nhạc đơn giản\n4️⃣ Thực hành chơi các bài nhạc yêu thích\n\n✨ Sau khóa học, học viên có thể tự chơi piano và đệm hát một số bài hát phổ biến.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Piano Đệm Hát 1-1', content:`🎹 PIANO ĐỆM HÁT — LỚP 1-1 (HỌC CÁ NHÂN)\n💰 Học phí: 4.200.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen piano và hợp âm cơ bản\n2️⃣ Học cách đệm hát các bài hát quen thuộc\n3️⃣ Học pattern đệm piano đơn giản\n4️⃣ Thực hành đệm và hát các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm và hát một số bài hát phổ biến.\nAnh/chị có thể tham gia buổi học trải nghiệm/workshop cảm thụ âm nhạc trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Violin', emoji:'🎻', items:[
+      { c:`🎻 VIOLIN — LỚP 3-1 (NHÓM)
+💰 Học phí: 5.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen violin và tư thế cầm đàn
+2️⃣ Kỹ thuật kéo vĩ cung cơ bản
+3️⃣ Học đọc nhạc và luyện giai điệu
+4️⃣ Thực hành biểu diễn bản nhạc đơn giản
+
+✨ Sau khóa, HV chơi được các bản nhạc cơ bản và tự tin biểu diễn.
+${NOTE}` },
+      { c:`🎻 VIOLIN — LỚP 2-1 (2 HỌC VIÊN)
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen violin và tư thế cầm đàn
+2️⃣ Kỹ thuật kéo vĩ cung cơ bản
+3️⃣ Học đọc nhạc và luyện giai điệu
+4️⃣ Thực hành biểu diễn bản nhạc đơn giản
+
+✨ Sau khóa, HV chơi được các bản nhạc cơ bản và tự tin biểu diễn.
+${NOTE}` },
+      { c:`🎻 VIOLIN — LỚP 1-1 (CÁ NHÂN)
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen violin và tư thế cầm đàn
+2️⃣ Kỹ thuật kéo vĩ cung cơ bản
+3️⃣ Học đọc nhạc và luyện giai điệu
+4️⃣ Thực hành biểu diễn bản nhạc đơn giản
+
+✨ Sau khóa, HV chơi được các bản nhạc cơ bản và tự tin biểu diễn.
+${NOTE11}` },
     ]},
-    { course:'Ukulele', emoji:'🪕', variants:[
-      { label:'Lớp Nhóm (3 HV)', content:`🪕 UKULELE — LỚP NHÓM (3 HỌC VIÊN)\n💰 Học phí: 5.400.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen ukulele và tiết tấu cơ bản\n2️⃣ Học hợp âm và kỹ thuật gảy đàn\n3️⃣ Học đệm các bài hát vui và dễ chơi\n4️⃣ Thực hành đệm hát các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm hát được nhiều bài nhạc phổ biến một cách tự tin.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 2-1 (2 HV)', content:`🪕 UKULELE — LỚP 2-1 (2 HỌC VIÊN)\n💰 Học phí: 7.200.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen ukulele và tiết tấu cơ bản\n2️⃣ Học hợp âm và kỹ thuật gảy đàn\n3️⃣ Học đệm các bài hát vui và dễ chơi\n4️⃣ Thực hành đệm hát các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm hát được nhiều bài nhạc phổ biến một cách tự tin.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 1-1 (Cá Nhân)', content:`🪕 UKULELE — LỚP 1-1 (HỌC CÁ NHÂN)\n💰 Học phí: 12.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen ukulele và tiết tấu cơ bản\n2️⃣ Học hợp âm và kỹ thuật gảy đàn\n3️⃣ Học đệm các bài hát vui và dễ chơi\n4️⃣ Thực hành đệm hát các bài yêu thích\n\n✨ Sau khóa học, học viên có thể tự đệm hát được nhiều bài nhạc phổ biến một cách tự tin.\nAnh/chị có thể tham gia buổi học trải nghiệm (500.000đ) trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Luyện Thi Violin', emoji:'🏆', items:[
+      { c:`🏆 LUYỆN THI VIOLIN — LUYỆN 3-1
+💰 Học phí: 6.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế violin – trình độ nhóm 3-1.
+✨ HV được chuẩn bị kỹ cho kỳ thi.
+${NOTE}` },
+      { c:`🏆 LUYỆN THI VIOLIN — LUYỆN 2-1
+💰 Học phí: 8.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế violin – trình độ 2-1.
+✨ HV được chuẩn bị kỹ cho kỳ thi.
+${NOTE}` },
+      { c:`🏆 LUYỆN THI VIOLIN — LUYỆN 1-1
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế violin – cá nhân chuyên sâu.
+✨ HV được chuẩn bị tốt nhất cho kỳ thi.
+${NOTE11}` },
     ]},
-    { course:'Thanh Nhạc', emoji:'🎤', variants:[
-      { label:'Lớp 2-1 (2 HV)', content:`🎤 THANH NHẠC — LỚP 2-1 (2 HỌC VIÊN)\n💰 Học phí: 7.200.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Luyện giọng và hơi thở cơ bản\n2️⃣ Học kỹ thuật hát rõ lời, lấy hơi đúng\n3️⃣ Học xử lý cảm xúc qua giọng hát\n4️⃣ Thực hành thể hiện các bài hát yêu thích\n\n✨ Sau khóa học, học viên có thể hát đúng kỹ thuật và tự tin biểu diễn trước đám đông.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Lớp 1-1 (Cá Nhân)', content:`🎤 THANH NHẠC — LỚP 1-1 (HỌC CÁ NHÂN)\n💰 Học phí: 12.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Luyện giọng và hơi thở cơ bản\n2️⃣ Học kỹ thuật hát rõ lời, lấy hơi đúng\n3️⃣ Học xử lý cảm xúc qua giọng hát\n4️⃣ Thực hành thể hiện các bài hát yêu thích\n\n✨ Sau khóa học, học viên có thể hát đúng kỹ thuật và tự tin biểu diễn trước đám đông.\nAnh/chị có thể tham gia buổi học trải nghiệm (500.000đ) trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Piano', emoji:'🎹', items:[
+      { c:`🎹 PIANO — LỚP 3-1 (NHÓM)
+💰 Học phí: 5.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen piano và hợp âm cơ bản
+2️⃣ Học đọc nhạc và luyện ngón tay
+3️⃣ Học đệm và chơi bản nhạc đơn giản
+4️⃣ Thực hành chơi bài nhạc yêu thích
+
+✨ Sau khóa, HV tự chơi piano và đệm hát một số bài phổ biến.
+${NOTE}` },
+      { c:`🎹 PIANO — LỚP 2-1 (2 HỌC VIÊN)
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen piano và hợp âm cơ bản
+2️⃣ Học đọc nhạc và luyện ngón tay
+3️⃣ Học đệm và chơi bản nhạc đơn giản
+4️⃣ Thực hành chơi bài nhạc yêu thích
+
+✨ Sau khóa, HV tự chơi piano và đệm hát một số bài phổ biến.
+${NOTE}` },
+      { c:`🎹 PIANO — LỚP 1-1 (CÁ NHÂN)
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen piano và hợp âm cơ bản
+2️⃣ Học đọc nhạc và luyện ngón tay
+3️⃣ Học đệm và chơi bản nhạc đơn giản
+4️⃣ Thực hành chơi bài nhạc yêu thích
+
+✨ Sau khóa, HV tự chơi piano và đệm hát một số bài phổ biến.
+${NOTE11}` },
     ]},
-    { course:'Vẽ', emoji:'🎨', variants:[
-      { label:'Vẽ Mầm Non', content:`🖍️ VẼ MẦM NON — LỚP NHÓM\n💰 Học phí: 3.600.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen màu sắc và hình khối cơ bản\n2️⃣ Vẽ các hình đơn giản theo chủ đề\n3️⃣ Phát triển sự sáng tạo qua các bài tập\n4️⃣ Tạo ra các tác phẩm nghệ thuật đơn giản\n\n✨ Sau khóa học, bé có nền tảng cảm nhận màu sắc, hình dạng và khả năng sáng tạo tự do.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Vẽ Căn Bản', content:`✏️ VẼ CĂN BẢN — LỚP NHÓM\n💰 Học phí: 3.300.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Kỹ thuật vẽ phác thảo và đường nét\n2️⃣ Học bố cục, ánh sáng và bóng đổ\n3️⃣ Vẽ tĩnh vật và phong cảnh cơ bản\n4️⃣ Thực hành hoàn thiện các bài vẽ hoàn chỉnh\n\n✨ Sau khóa học, học viên có nền tảng vẽ căn bản vững chắc để học các kỹ thuật nâng cao hơn.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Ký Họa / Màu Nước / Marker', content:`🖊️ KÝ HỌA / MÀU NƯỚC / MÀU MARKER — LỚP NHÓM\n💰 Học phí: 3.600.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen chất liệu và dụng cụ vẽ chuyên biệt\n2️⃣ Học kỹ thuật xử lý màu đặc trưng theo từng chất liệu\n3️⃣ Thực hành vẽ các chủ đề đa dạng\n4️⃣ Hoàn thiện bài vẽ bằng chất liệu đã chọn\n\n✨ Sau khóa học, học viên có thể sử dụng thành thạo chất liệu đã học và thể hiện phong cách riêng.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Acrylic / Digital Art', content:`🖼️ MÀU ACRYLIC CANVAS / DIGITAL ART — LỚP NHÓM\n💰 Học phí: 4.800.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen với canvas hoặc bảng vẽ kỹ thuật số\n2️⃣ Học kỹ thuật pha màu và xây dựng lớp màu\n3️⃣ Thực hành vẽ tác phẩm trên canvas hoặc phần mềm\n4️⃣ Hoàn thiện và trình bày tác phẩm cá nhân\n\n✨ Sau khóa học, học viên có thể tạo ra các tác phẩm hội họa hoàn chỉnh.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Piano Đệm Hát', emoji:'🎹🎤', items:[
+      { c:`🎹🎤 PIANO ĐỆM HÁT — LỚP 3-1 (NHÓM)
+💰 Học phí: 5.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen piano và hợp âm cơ bản
+2️⃣ Học cách đệm hát bài hát quen thuộc
+3️⃣ Học pattern đệm piano đơn giản
+4️⃣ Thực hành đệm và hát bài yêu thích
+
+✨ Sau khóa, HV tự đệm và hát một số bài hát phổ biến.
+${NOTE}` },
+      { c:`🎹🎤 PIANO ĐỆM HÁT — LỚP 2-1 (2 HỌC VIÊN)
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen piano và hợp âm cơ bản
+2️⃣ Học cách đệm hát bài hát quen thuộc
+3️⃣ Học pattern đệm piano đơn giản
+4️⃣ Thực hành đệm và hát bài yêu thích
+
+✨ Sau khóa, HV tự đệm và hát một số bài hát phổ biến.
+${NOTE}` },
+      { c:`🎹🎤 PIANO ĐỆM HÁT — LỚP 1-1 (CÁ NHÂN)
+💰 Học phí: 4.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen piano và hợp âm cơ bản
+2️⃣ Học cách đệm hát bài hát quen thuộc
+3️⃣ Học pattern đệm piano đơn giản
+4️⃣ Thực hành đệm và hát bài yêu thích
+
+✨ Sau khóa, HV tự đệm và hát một số bài hát phổ biến.
+Anh/chị có thể tham gia buổi workshop cảm thụ âm nhạc trước khi đăng ký ạ.` },
     ]},
-    { course:'Ballet & Dance', emoji:'🩰', variants:[
-      { label:'Ballet 3-5 tuổi', content:`🩰 BALLET 3–5 TUỔI — LỚP NHÓM\n💰 Học phí: 3.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen với âm nhạc và chuyển động cơ bản\n2️⃣ Học tư thế đứng đúng và khả năng cân bằng\n3️⃣ Luyện tập các bước nhảy ballet đơn giản\n4️⃣ Biểu diễn các bài múa ngắn theo chủ đề\n\n✨ Sau khóa học, bé phát triển sự dẻo dai, phối hợp cơ thể và tình yêu thích âm nhạc nghệ thuật.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Ballet 6-9 tuổi', content:`🩰 BALLET 6–9 TUỔI — LỚP NHÓM\n💰 Học phí: 3.600.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Ôn luyện tư thế và kỹ thuật ballet cơ bản\n2️⃣ Học các bước nhảy và chuyển động trung cấp\n3️⃣ Luyện tập phối hợp nhịp điệu và âm nhạc\n4️⃣ Biểu diễn bài múa hoàn chỉnh cuối khóa\n\n✨ Sau khóa học, học viên đạt được sự thành thục trong kỹ thuật ballet và tự tin trên sân khấu.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Dance (Nhảy Hiện Đại)', content:`💃 DANCE (NHẢY HIỆN ĐẠI) — LỚP NHÓM\n💰 Học phí: 3.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Khởi động cơ thể và học nhịp điệu cơ bản\n2️⃣ Học các vũ đạo hiện đại phổ biến\n3️⃣ Luyện tập phối hợp nhóm và đồng điệu\n4️⃣ Biểu diễn bài múa nhóm cuối khóa\n\n✨ Sau khóa học, học viên có thể nhảy các phong cách hiện đại và tự tin biểu diễn.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Khiêu Vũ', content:`🕺 KHIÊU VŨ — LỚP NHÓM\n💰 Học phí: 3.000.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Làm quen các điệu nhảy khiêu vũ cơ bản\n2️⃣ Học tư thế, bước đi và dẫn dắt\n3️⃣ Luyện tập phối hợp cặp đôi hoặc nhóm\n4️⃣ Thực hành nhảy trong các tình huống thực tế\n\n✨ Sau khóa học, học viên có thể khiêu vũ tự tin trong các sự kiện, tiệc, giao lưu xã hội.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
-      { label:'Múa Cổ Trang', content:`🏮 MÚA CỔ TRANG — LỚP NHÓM\n💰 Học phí: 3.600.000đ / khóa\n⏱ Thời lượng: 3 tháng (24 buổi)\n📅 Tần suất: 2 buổi/tuần\n\n📚 Nội dung khóa học:\n1️⃣ Tìm hiểu về múa cổ trang và văn hóa dân tộc\n2️⃣ Học các động tác tay, chân đặc trưng\n3️⃣ Luyện tập biểu cảm và dáng điệu\n4️⃣ Biểu diễn bài múa hoàn chỉnh theo chủ đề cổ trang\n\n✨ Sau khóa học, học viên có thể biểu diễn múa cổ trang đúng phong cách và tự tin trên sân khấu.\nAnh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.` },
+    { course:'Luyện Thi Piano', emoji:'🏆', items:[
+      { c:`🏆 LUYỆN THI PIANO — LUYỆN 3-1
+💰 Học phí: 6.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế piano – trình độ nhóm 3-1.
+✨ HV được chuẩn bị kỹ cho kỳ thi.
+${NOTE}` },
+      { c:`🏆 LUYỆN THI PIANO — LUYỆN 2-1
+💰 Học phí: 8.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế piano – trình độ 2-1.
+✨ HV được chuẩn bị kỹ cho kỳ thi.
+${NOTE}` },
+      { c:`🏆 LUYỆN THI PIANO — LUYỆN 1-1
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ quốc tế piano – cá nhân chuyên sâu.
+✨ HV được chuẩn bị tốt nhất.
+${NOTE11}` },
+    ]},
+    { course:'Ukulele', emoji:'🪕', items:[
+      { c:`🪕 UKULELE — LỚP 3-1 (NHÓM)
+💰 Học phí: 5.400.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen ukulele và tiết tấu cơ bản
+2️⃣ Học hợp âm và kỹ thuật gảy đàn
+3️⃣ Đệm các bài hát vui và dễ chơi
+4️⃣ Thực hành đệm hát bài yêu thích
+
+✨ Sau khóa, HV tự đệm hát nhiều bài nhạc phổ biến tự tin.
+${NOTE}` },
+      { c:`🪕 UKULELE — LỚP 2-1 (2 HỌC VIÊN)
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen ukulele và tiết tấu cơ bản
+2️⃣ Học hợp âm và kỹ thuật gảy đàn
+3️⃣ Đệm các bài hát vui và dễ chơi
+4️⃣ Thực hành đệm hát bài yêu thích
+
+✨ Sau khóa, HV tự đệm hát nhiều bài nhạc phổ biến tự tin.
+${NOTE}` },
+      { c:`🪕 UKULELE — LỚP 1-1 (CÁ NHÂN)
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen ukulele và tiết tấu cơ bản
+2️⃣ Học hợp âm và kỹ thuật gảy đàn
+3️⃣ Đệm các bài hát vui và dễ chơi
+4️⃣ Thực hành đệm hát bài yêu thích
+
+✨ Sau khóa, HV tự đệm hát nhiều bài nhạc phổ biến tự tin.
+${NOTE11}` },
+    ]},
+    { course:'Thanh Nhạc', emoji:'🎤', items:[
+      { c:`🎤 THANH NHẠC — LỚP 2-1 (2 HỌC VIÊN)
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Luyện giọng và hơi thở cơ bản
+2️⃣ Kỹ thuật hát rõ lời, lấy hơi đúng
+3️⃣ Xử lý cảm xúc qua giọng hát
+4️⃣ Thực hành thể hiện bài hát yêu thích
+
+✨ Sau khóa, HV hát đúng kỹ thuật và tự tin biểu diễn.
+${NOTE}` },
+      { c:`🎤 THANH NHẠC — LỚP 1-1 (CÁ NHÂN)
+💰 Học phí: 12.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Luyện giọng và hơi thở cơ bản
+2️⃣ Kỹ thuật hát rõ lời, lấy hơi đúng
+3️⃣ Xử lý cảm xúc qua giọng hát
+4️⃣ Thực hành thể hiện bài hát yêu thích
+
+✨ Sau khóa, HV hát đúng kỹ thuật và tự tin biểu diễn.
+${NOTE11}` },
+    ]},
+    { course:'Vẽ', emoji:'🎨', items:[
+      { c:`🖍️ VẼ MẦM NON — LỚP NHÓM
+💰 Học phí: 3.600.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen màu sắc và hình khối cơ bản
+2️⃣ Vẽ hình đơn giản theo chủ đề
+3️⃣ Phát triển sáng tạo qua bài tập
+4️⃣ Tạo tác phẩm nghệ thuật đơn giản
+
+✨ Sau khóa, bé có nền tảng cảm nhận màu sắc và khả năng sáng tạo tự do.
+${NOTE}` },
+      { c:`✏️ VẼ CĂN BẢN — LỚP NHÓM
+💰 Học phí: 3.300.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Kỹ thuật vẽ phác thảo và đường nét
+2️⃣ Học bố cục, ánh sáng và bóng đổ
+3️⃣ Vẽ tĩnh vật và phong cảnh cơ bản
+4️⃣ Hoàn thiện bài vẽ hoàn chỉnh
+
+✨ Sau khóa, HV có nền tảng vẽ căn bản vững chắc.
+${NOTE}` },
+      { c:`🖊️ KÝ HỌA / MÀU NƯỚC / MÀU MARKER — LỚP NHÓM
+💰 Học phí: 3.600.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen chất liệu và dụng cụ chuyên biệt
+2️⃣ Kỹ thuật xử lý màu theo từng chất liệu
+3️⃣ Thực hành vẽ chủ đề đa dạng
+4️⃣ Hoàn thiện bài vẽ bằng chất liệu đã chọn
+
+✨ Sau khóa, HV dùng thành thạo chất liệu và thể hiện phong cách riêng.
+${NOTE}` },
+      { c:`🖼️ MÀU ACRYLIC CANVAS / DIGITAL ART — LỚP NHÓM
+💰 Học phí: 4.800.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen canvas hoặc bảng vẽ kỹ thuật số
+2️⃣ Kỹ thuật pha màu và xây dựng lớp màu
+3️⃣ Thực hành vẽ tác phẩm trên canvas/phần mềm
+4️⃣ Hoàn thiện và trình bày tác phẩm cá nhân
+
+✨ Sau khóa, HV tạo được tác phẩm hội họa hoàn chỉnh.
+${NOTE}` },
+    ]},
+    { course:'Luyện Thi Vẽ', emoji:'🏆', items:[
+      { c:`🏆 LUYỆN THI VẼ — LỚP NHÓM
+💰 Học phí: 7.200.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung: Luyện thi chứng chỉ vẽ quốc tế – lớp nhóm.
+✨ HV được chuẩn bị bài bản cho kỳ thi.
+${NOTE}` },
+    ]},
+    { course:'Ballet & Múa', emoji:'🩰', items:[
+      { c:`🩰 BALLET 3–5 TUỔI — LỚP NHÓM
+💰 Học phí: 3.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen âm nhạc và chuyển động cơ bản
+2️⃣ Học tư thế đứng đúng và cân bằng
+3️⃣ Luyện tập bước nhảy ballet đơn giản
+4️⃣ Biểu diễn bài múa ngắn theo chủ đề
+
+✨ Sau khóa, bé phát triển sự dẻo dai, phối hợp cơ thể và yêu nghệ thuật.
+${NOTE}` },
+      { c:`🩰 BALLET 6–9 TUỔI — LỚP NHÓM
+💰 Học phí: 3.600.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Ôn tư thế và kỹ thuật ballet cơ bản
+2️⃣ Các bước nhảy và chuyển động trung cấp
+3️⃣ Phối hợp nhịp điệu và âm nhạc
+4️⃣ Biểu diễn bài múa hoàn chỉnh cuối khóa
+
+✨ Sau khóa, HV thành thục kỹ thuật ballet và tự tin trên sân khấu.
+${NOTE}` },
+      { c:`💃 DANCE (NHẢY HIỆN ĐẠI) — LỚP NHÓM
+💰 Học phí: 3.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Khởi động cơ thể và học nhịp điệu cơ bản
+2️⃣ Các vũ đạo hiện đại phổ biến
+3️⃣ Phối hợp nhóm và đồng điệu
+4️⃣ Biểu diễn bài múa nhóm cuối khóa
+
+✨ Sau khóa, HV nhảy các phong cách hiện đại tự tin.
+${NOTE}` },
+      { c:`🕺 KHIÊU VŨ — LỚP NHÓM
+💰 Học phí: 3.000.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Làm quen các điệu nhảy khiêu vũ cơ bản
+2️⃣ Tư thế, bước đi và dẫn dắt
+3️⃣ Phối hợp cặp đôi hoặc nhóm
+4️⃣ Thực hành trong tình huống thực tế
+
+✨ Sau khóa, HV khiêu vũ tự tin trong sự kiện, tiệc.
+${NOTE}` },
+      { c:`🏮 MÚA CỔ TRANG — LỚP NHÓM
+💰 Học phí: 3.600.000đ / khóa
+⏱ Thời lượng: 3 tháng (24 buổi)
+📅 Tần suất: 2 buổi/tuần
+
+📚 Nội dung:
+1️⃣ Tìm hiểu múa cổ trang và văn hóa dân tộc
+2️⃣ Các động tác tay, chân đặc trưng
+3️⃣ Luyện biểu cảm và dáng điệu
+4️⃣ Biểu diễn bài múa theo chủ đề cổ trang
+
+✨ Sau khóa, HV biểu diễn múa cổ trang đúng phong cách và tự tin.
+${NOTE}` },
+    ]},
+    { course:'Học Thử', emoji:'⭐', items:[
+      { c:`⭐ HỌC THỬ LỚP NHÓM (10:1)
+💰 Học phí: 100.000đ / buổi
+
+Anh/chị và bé có thể trải nghiệm 1 buổi học thử trong lớp nhóm để cảm nhận không khí và phương pháp giảng dạy trước khi đăng ký chính thức ạ.
+
+Liên hệ để đặt lịch học thử phù hợp.` },
+      { c:`⭐ HỌC THỬ 2-1
+💰 Học phí: 250.000đ / buổi
+
+Anh/chị và bé có thể trải nghiệm 1 buổi học thử 2-1 (2 học viên/1 giáo viên) để cảm nhận phương pháp học trước khi đăng ký chính thức ạ.
+
+Liên hệ để đặt lịch học thử phù hợp.` },
+      { c:`⭐ HỌC THỬ 1-1 (CÁ NHÂN)
+💰 Học phí: 500.000đ / buổi
+
+Anh/chị và bé có thể trải nghiệm 1 buổi học 1-1 cùng giáo viên để được tư vấn lộ trình và phương pháp học cá nhân hoá trước khi đăng ký chính thức ạ.
+
+Liên hệ để đặt lịch học thử phù hợp.` },
     ]},
   ];
   let id = Date.now();
   seed.forEach(group => {
-    group.variants.forEach(v => {
-      templates.push({ id: id++, course: group.course, emoji: group.emoji, content: v.content });
+    group.items.forEach(v => {
+      templates.push({ id: id++, course: group.course, emoji: group.emoji, content: v.c });
     });
   });
   save();
