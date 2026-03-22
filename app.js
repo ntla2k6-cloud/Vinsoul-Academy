@@ -1459,38 +1459,111 @@ function copyGroupMsg() {
   cf.style.display='block'; setTimeout(()=>cf.style.display='none',3000);
 }
 
+let activeCourseGroup = null;
+
 function renderTemplates() {
   const q = (document.getElementById('template-search')||{value:''}).value.toLowerCase();
-  const filtered = templates.filter(t => !q || t.course.toLowerCase().includes(q) || t.content.toLowerCase().includes(q));
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
-  if (!filtered.length) {
+
+  // Build groups
+  const groups = {};
+  templates.forEach(t => {
+    if (!groups[t.course]) groups[t.course] = { emoji: t.emoji||'💬', items: [] };
+    groups[t.course].items.push(t);
+  });
+
+  // Filter by search
+  const filteredGroups = {};
+  Object.entries(groups).forEach(([course, g]) => {
+    const matchGroup = !q || course.toLowerCase().includes(q);
+    const matchItems = g.items.filter(t => !q || t.content.toLowerCase().includes(q) || course.toLowerCase().includes(q));
+    if (matchGroup || matchItems.length) {
+      filteredGroups[course] = { ...g, items: matchGroup ? g.items : matchItems };
+    }
+  });
+
+  if (!Object.keys(filteredGroups).length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:40px;"><div class="empty-icon">💬</div><div class="empty-text">Chưa có tin nhắn mẫu nào.<br>Nhấn "+ Thêm Tin Nhắn Mẫu" để tạo mới.</div></div>`;
     return;
   }
-  // Group by course name
-  const groups = {};
-  filtered.forEach(t => {
-    if (!groups[t.course]) groups[t.course] = [];
-    groups[t.course].push(t);
-  });
-  grid.innerHTML = Object.entries(groups).map(([course, items]) => `
-    <div style="background:var(--white);border-radius:var(--r-lg);border:1.5px solid rgba(200,146,42,.12);box-shadow:var(--shadow-sm);overflow:hidden;">
-      <div style="background:var(--navy);padding:12px 16px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">${items[0].emoji||'💬'}</span>
-        <div style="font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;flex:1;">${course}</div>
-        <button onclick="openAddTemplate('${course.replace(/'/g,"\\'")}')" style="background:rgba(246,153,34,.2);border:1px solid rgba(246,153,34,.4);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;">+ Thêm</button>
-      </div>
-      ${items.map(t => `
-      <div style="padding:14px 16px;border-bottom:1px solid var(--cream2);">
-        <div style="background:var(--cream);border-radius:8px;padding:12px;font-size:12px;color:#1a1a1a;line-height:1.75;white-space:pre-wrap;font-family:'Be Vietnam Pro',sans-serif;max-height:160px;overflow-y:auto;margin-bottom:10px;">${t.content}</div>
-        <div style="display:flex;gap:7px;">
-          <button onclick="copyTemplate(${t.id})" style="background:var(--gold);color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;flex:1;">📋 Sao Chép</button>
-          <button onclick="editTemplate(${t.id})" style="background:var(--white);border:1.5px solid var(--cream2);color:var(--navy);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;" title="Chỉnh sửa">✎</button>
-          <button onclick="deleteTemplate(${t.id})" style="background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer;" title="Xóa">🗑</button>
+
+  // If search active, show all flat
+  if (q) {
+    activeCourseGroup = null;
+    let html = `<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;">`;
+    Object.entries(filteredGroups).forEach(([course, g]) => {
+      g.items.forEach(t => {
+        html += buildTemplateCard(t);
+      });
+    });
+    html += '</div>';
+    grid.innerHTML = html;
+    return;
+  }
+
+  // Level 1: môn tabs (if no group selected)
+  if (!activeCourseGroup || !filteredGroups[activeCourseGroup]) {
+    activeCourseGroup = null;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+          ${Object.entries(filteredGroups).map(([course, g]) => `
+            <button onclick="selectCourseGroup('${course.replace(/'/g,"\\'")}');"
+              style="display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid rgba(200,146,42,.15);border-radius:12px;padding:10px 16px;cursor:pointer;transition:all .2s;font-family:'Be Vietnam Pro',sans-serif;min-width:160px;"
+              onmouseover="this.style.borderColor='var(--gold)';this.style.background='var(--cream)';"
+              onmouseout="this.style.borderColor='rgba(200,146,42,.15)';this.style.background='var(--white)';">
+              <span style="font-size:22px;">${g.emoji}</span>
+              <div style="text-align:left;">
+                <div style="font-size:12px;font-weight:800;color:var(--navy);">${course}</div>
+                <div style="font-size:10px;color:var(--muted);">${g.items.length} tin nhắn mẫu</div>
+              </div>
+              <span style="margin-left:auto;color:var(--gold);font-size:16px;">›</span>
+            </button>`).join('')}
+          <button onclick="openAddTemplate();" style="display:flex;align-items:center;gap:8px;background:var(--cream);border:1.5px dashed var(--gold);border-radius:12px;padding:10px 16px;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;min-width:160px;color:var(--gold);font-weight:700;font-size:12px;">
+            <span style="font-size:22px;">＋</span> Thêm Mẫu Mới
+          </button>
         </div>
-      </div>`).join('')}
-    </div>`).join('');
+      </div>`;
+    return;
+  }
+
+  // Level 2: cards in selected group
+  const g = filteredGroups[activeCourseGroup];
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <button onclick="activeCourseGroup=null;renderTemplates();" style="background:var(--cream);border:1.5px solid var(--cream2);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:700;color:var(--navy);font-family:'Be Vietnam Pro',sans-serif;">← Quay lại</button>
+        <span style="font-size:22px;">${g.emoji}</span>
+        <div style="font-size:16px;font-weight:800;color:var(--navy);">${activeCourseGroup}</div>
+        <button onclick="openAddTemplate('${activeCourseGroup.replace(/'/g,"\\'")}');" style="margin-left:auto;background:var(--gold);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Be Vietnam Pro',sans-serif;">+ Thêm mẫu</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
+        ${g.items.map(t => buildTemplateCard(t)).join('')}
+      </div>
+    </div>`;
+}
+
+function buildTemplateCard(t) {
+  const preview = t.content.length > 120 ? t.content.slice(0, 120) + '…' : t.content;
+  return `<div style="background:var(--white);border-radius:12px;border:1.5px solid rgba(200,146,42,.12);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;">
+    <div style="background:var(--navy);padding:10px 14px;">
+      <div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;">${t.course}</div>
+    </div>
+    <div style="padding:12px 14px;flex:1;">
+      <div style="background:var(--cream);border-radius:8px;padding:10px;font-size:11.5px;color:#1a1a1a;line-height:1.7;white-space:pre-wrap;font-family:'Be Vietnam Pro',sans-serif;max-height:180px;overflow-y:auto;">${t.content}</div>
+    </div>
+    <div style="padding:10px 14px 12px;display:flex;gap:7px;border-top:1px solid var(--cream2);">
+      <button onclick="copyTemplate(${t.id})" style="background:var(--gold);color:#fff;border:none;border-radius:8px;padding:7px 0;font-size:11px;font-weight:700;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;flex:1;">📋 Sao Chép</button>
+      <button onclick="editTemplate(${t.id})" style="background:var(--white);border:1.5px solid var(--cream2);color:var(--navy);border-radius:8px;padding:7px 11px;font-size:13px;cursor:pointer;" title="Sửa">✎</button>
+      <button onclick="deleteTemplate(${t.id})" style="background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:8px;padding:7px 11px;font-size:14px;cursor:pointer;" title="Xóa">🗑</button>
+    </div>
+  </div>`;
+}
+
+function selectCourseGroup(course) {
+  activeCourseGroup = course;
+  renderTemplates();
 }
 
 function copyTemplate(id) {
@@ -1615,484 +1688,178 @@ function importBackup() {
   input.click();
 }
 
-// ── SEED TIN NHẮN MẪU ──
+// ── SEED TIN NHẮN MẪU (từ data chính thức) ──
 function seedTemplatesIfEmpty() {
   if (templates.length > 0) return;
-  const NOTE = 'Anh/chị có thể tham gia buổi học thử trước khi đăng ký lớp chính thức ạ.';
-  const NOTE11 = 'Anh/chị có thể tham gia buổi học thử (500.000đ) trước khi đăng ký lớp chính thức ạ.';
-  const seed = [
-    { course:'Guitar', emoji:'🎸', items:[
-      { c:`🎸 GUITAR — LỚP 3-1 (NHÓM)
-💰 Học phí: 5.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen guitar và kỹ thuật cơ bản
-2️⃣ Học hợp âm, tiết tấu
-3️⃣ Đệm các bài hát quen thuộc
-4️⃣ Thực hành biểu diễn bài yêu thích
-
-✨ Sau khóa, HV tự đệm và trò chuyện với nhạc cụ tự tin.
-${NOTE}` },
-      { c:`🎸 GUITAR — LỚP 2-1 (2 HỌC VIÊN)
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen guitar và kỹ thuật cơ bản
-2️⃣ Học hợp âm, tiết tấu
-3️⃣ Đệm các bài hát quen thuộc
-4️⃣ Thực hành biểu diễn bài yêu thích
-
-✨ Sau khóa, HV tự đệm và trình diễn tự tin.
-${NOTE}` },
-      { c:`🎸 GUITAR — LỚP 1-1 (CÁ NHÂN)
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen guitar và kỹ thuật cơ bản
-2️⃣ Học hợp âm, tiết tấu
-3️⃣ Đệm các bài hát quen thuộc
-4️⃣ Thực hành biểu diễn bài yêu thích
-
-✨ Sau khóa, HV tự đệm và trình diễn tự tin.
-${NOTE11}` },
-    ]},
-    { course:'Luyện Thi Guitar', emoji:'🏆', items:[
-      { c:`🏆 LUYỆN THI GUITAR — LUYỆN 3-1
-💰 Học phí: 6.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế guitar – trình độ nhóm 3-1.
-
-✨ HV được chuẩn bị kỹ càng cho kỳ thi chứng chỉ quốc tế.
-${NOTE}` },
-      { c:`🏆 LUYỆN THI GUITAR — LUYỆN 2-1
-💰 Học phí: 8.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế guitar – trình độ 2-1.
-
-✨ HV được chuẩn bị kỹ càng cho kỳ thi chứng chỉ quốc tế.
-${NOTE}` },
-      { c:`🏆 LUYỆN THI GUITAR — LUYỆN 1-1 (CÁ NHÂN)
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế guitar – cá nhân chuyên sâu.
-
-✨ HV được chuẩn bị tốt nhất cho kỳ thi.
-${NOTE11}` },
-    ]},
-    { course:'Violin', emoji:'🎻', items:[
-      { c:`🎻 VIOLIN — LỚP 3-1 (NHÓM)
-💰 Học phí: 5.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen violin và tư thế cầm đàn
-2️⃣ Kỹ thuật kéo vĩ cung cơ bản
-3️⃣ Học đọc nhạc và luyện giai điệu
-4️⃣ Thực hành biểu diễn bản nhạc đơn giản
-
-✨ Sau khóa, HV chơi được các bản nhạc cơ bản và tự tin biểu diễn.
-${NOTE}` },
-      { c:`🎻 VIOLIN — LỚP 2-1 (2 HỌC VIÊN)
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen violin và tư thế cầm đàn
-2️⃣ Kỹ thuật kéo vĩ cung cơ bản
-3️⃣ Học đọc nhạc và luyện giai điệu
-4️⃣ Thực hành biểu diễn bản nhạc đơn giản
-
-✨ Sau khóa, HV chơi được các bản nhạc cơ bản và tự tin biểu diễn.
-${NOTE}` },
-      { c:`🎻 VIOLIN — LỚP 1-1 (CÁ NHÂN)
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen violin và tư thế cầm đàn
-2️⃣ Kỹ thuật kéo vĩ cung cơ bản
-3️⃣ Học đọc nhạc và luyện giai điệu
-4️⃣ Thực hành biểu diễn bản nhạc đơn giản
-
-✨ Sau khóa, HV chơi được các bản nhạc cơ bản và tự tin biểu diễn.
-${NOTE11}` },
-    ]},
-    { course:'Luyện Thi Violin', emoji:'🏆', items:[
-      { c:`🏆 LUYỆN THI VIOLIN — LUYỆN 3-1
-💰 Học phí: 6.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế violin – trình độ nhóm 3-1.
-✨ HV được chuẩn bị kỹ cho kỳ thi.
-${NOTE}` },
-      { c:`🏆 LUYỆN THI VIOLIN — LUYỆN 2-1
-💰 Học phí: 8.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế violin – trình độ 2-1.
-✨ HV được chuẩn bị kỹ cho kỳ thi.
-${NOTE}` },
-      { c:`🏆 LUYỆN THI VIOLIN — LUYỆN 1-1
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế violin – cá nhân chuyên sâu.
-✨ HV được chuẩn bị tốt nhất cho kỳ thi.
-${NOTE11}` },
-    ]},
-    { course:'Piano', emoji:'🎹', items:[
-      { c:`🎹 PIANO — LỚP 3-1 (NHÓM)
-💰 Học phí: 5.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen piano và hợp âm cơ bản
-2️⃣ Học đọc nhạc và luyện ngón tay
-3️⃣ Học đệm và chơi bản nhạc đơn giản
-4️⃣ Thực hành chơi bài nhạc yêu thích
-
-✨ Sau khóa, HV tự chơi piano và đệm hát một số bài phổ biến.
-${NOTE}` },
-      { c:`🎹 PIANO — LỚP 2-1 (2 HỌC VIÊN)
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen piano và hợp âm cơ bản
-2️⃣ Học đọc nhạc và luyện ngón tay
-3️⃣ Học đệm và chơi bản nhạc đơn giản
-4️⃣ Thực hành chơi bài nhạc yêu thích
-
-✨ Sau khóa, HV tự chơi piano và đệm hát một số bài phổ biến.
-${NOTE}` },
-      { c:`🎹 PIANO — LỚP 1-1 (CÁ NHÂN)
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen piano và hợp âm cơ bản
-2️⃣ Học đọc nhạc và luyện ngón tay
-3️⃣ Học đệm và chơi bản nhạc đơn giản
-4️⃣ Thực hành chơi bài nhạc yêu thích
-
-✨ Sau khóa, HV tự chơi piano và đệm hát một số bài phổ biến.
-${NOTE11}` },
-    ]},
-    { course:'Piano Đệm Hát', emoji:'🎹🎤', items:[
-      { c:`🎹🎤 PIANO ĐỆM HÁT — LỚP 3-1 (NHÓM)
-💰 Học phí: 5.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen piano và hợp âm cơ bản
-2️⃣ Học cách đệm hát bài hát quen thuộc
-3️⃣ Học pattern đệm piano đơn giản
-4️⃣ Thực hành đệm và hát bài yêu thích
-
-✨ Sau khóa, HV tự đệm và hát một số bài hát phổ biến.
-${NOTE}` },
-      { c:`🎹🎤 PIANO ĐỆM HÁT — LỚP 2-1 (2 HỌC VIÊN)
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen piano và hợp âm cơ bản
-2️⃣ Học cách đệm hát bài hát quen thuộc
-3️⃣ Học pattern đệm piano đơn giản
-4️⃣ Thực hành đệm và hát bài yêu thích
-
-✨ Sau khóa, HV tự đệm và hát một số bài hát phổ biến.
-${NOTE}` },
-      { c:`🎹🎤 PIANO ĐỆM HÁT — LỚP 1-1 (CÁ NHÂN)
-💰 Học phí: 4.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen piano và hợp âm cơ bản
-2️⃣ Học cách đệm hát bài hát quen thuộc
-3️⃣ Học pattern đệm piano đơn giản
-4️⃣ Thực hành đệm và hát bài yêu thích
-
-✨ Sau khóa, HV tự đệm và hát một số bài hát phổ biến.
-Anh/chị có thể tham gia buổi workshop cảm thụ âm nhạc trước khi đăng ký ạ.` },
-    ]},
-    { course:'Luyện Thi Piano', emoji:'🏆', items:[
-      { c:`🏆 LUYỆN THI PIANO — LUYỆN 3-1
-💰 Học phí: 6.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế piano – trình độ nhóm 3-1.
-✨ HV được chuẩn bị kỹ cho kỳ thi.
-${NOTE}` },
-      { c:`🏆 LUYỆN THI PIANO — LUYỆN 2-1
-💰 Học phí: 8.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế piano – trình độ 2-1.
-✨ HV được chuẩn bị kỹ cho kỳ thi.
-${NOTE}` },
-      { c:`🏆 LUYỆN THI PIANO — LUYỆN 1-1
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ quốc tế piano – cá nhân chuyên sâu.
-✨ HV được chuẩn bị tốt nhất.
-${NOTE11}` },
-    ]},
-    { course:'Ukulele', emoji:'🪕', items:[
-      { c:`🪕 UKULELE — LỚP 3-1 (NHÓM)
-💰 Học phí: 5.400.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen ukulele và tiết tấu cơ bản
-2️⃣ Học hợp âm và kỹ thuật gảy đàn
-3️⃣ Đệm các bài hát vui và dễ chơi
-4️⃣ Thực hành đệm hát bài yêu thích
-
-✨ Sau khóa, HV tự đệm hát nhiều bài nhạc phổ biến tự tin.
-${NOTE}` },
-      { c:`🪕 UKULELE — LỚP 2-1 (2 HỌC VIÊN)
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen ukulele và tiết tấu cơ bản
-2️⃣ Học hợp âm và kỹ thuật gảy đàn
-3️⃣ Đệm các bài hát vui và dễ chơi
-4️⃣ Thực hành đệm hát bài yêu thích
-
-✨ Sau khóa, HV tự đệm hát nhiều bài nhạc phổ biến tự tin.
-${NOTE}` },
-      { c:`🪕 UKULELE — LỚP 1-1 (CÁ NHÂN)
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen ukulele và tiết tấu cơ bản
-2️⃣ Học hợp âm và kỹ thuật gảy đàn
-3️⃣ Đệm các bài hát vui và dễ chơi
-4️⃣ Thực hành đệm hát bài yêu thích
-
-✨ Sau khóa, HV tự đệm hát nhiều bài nhạc phổ biến tự tin.
-${NOTE11}` },
-    ]},
-    { course:'Thanh Nhạc', emoji:'🎤', items:[
-      { c:`🎤 THANH NHẠC — LỚP 2-1 (2 HỌC VIÊN)
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Luyện giọng và hơi thở cơ bản
-2️⃣ Kỹ thuật hát rõ lời, lấy hơi đúng
-3️⃣ Xử lý cảm xúc qua giọng hát
-4️⃣ Thực hành thể hiện bài hát yêu thích
-
-✨ Sau khóa, HV hát đúng kỹ thuật và tự tin biểu diễn.
-${NOTE}` },
-      { c:`🎤 THANH NHẠC — LỚP 1-1 (CÁ NHÂN)
-💰 Học phí: 12.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Luyện giọng và hơi thở cơ bản
-2️⃣ Kỹ thuật hát rõ lời, lấy hơi đúng
-3️⃣ Xử lý cảm xúc qua giọng hát
-4️⃣ Thực hành thể hiện bài hát yêu thích
-
-✨ Sau khóa, HV hát đúng kỹ thuật và tự tin biểu diễn.
-${NOTE11}` },
-    ]},
-    { course:'Vẽ', emoji:'🎨', items:[
-      { c:`🖍️ VẼ MẦM NON — LỚP NHÓM
-💰 Học phí: 3.600.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen màu sắc và hình khối cơ bản
-2️⃣ Vẽ hình đơn giản theo chủ đề
-3️⃣ Phát triển sáng tạo qua bài tập
-4️⃣ Tạo tác phẩm nghệ thuật đơn giản
-
-✨ Sau khóa, bé có nền tảng cảm nhận màu sắc và khả năng sáng tạo tự do.
-${NOTE}` },
-      { c:`✏️ VẼ CĂN BẢN — LỚP NHÓM
-💰 Học phí: 3.300.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Kỹ thuật vẽ phác thảo và đường nét
-2️⃣ Học bố cục, ánh sáng và bóng đổ
-3️⃣ Vẽ tĩnh vật và phong cảnh cơ bản
-4️⃣ Hoàn thiện bài vẽ hoàn chỉnh
-
-✨ Sau khóa, HV có nền tảng vẽ căn bản vững chắc.
-${NOTE}` },
-      { c:`🖊️ KÝ HỌA / MÀU NƯỚC / MÀU MARKER — LỚP NHÓM
-💰 Học phí: 3.600.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen chất liệu và dụng cụ chuyên biệt
-2️⃣ Kỹ thuật xử lý màu theo từng chất liệu
-3️⃣ Thực hành vẽ chủ đề đa dạng
-4️⃣ Hoàn thiện bài vẽ bằng chất liệu đã chọn
-
-✨ Sau khóa, HV dùng thành thạo chất liệu và thể hiện phong cách riêng.
-${NOTE}` },
-      { c:`🖼️ MÀU ACRYLIC CANVAS / DIGITAL ART — LỚP NHÓM
-💰 Học phí: 4.800.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen canvas hoặc bảng vẽ kỹ thuật số
-2️⃣ Kỹ thuật pha màu và xây dựng lớp màu
-3️⃣ Thực hành vẽ tác phẩm trên canvas/phần mềm
-4️⃣ Hoàn thiện và trình bày tác phẩm cá nhân
-
-✨ Sau khóa, HV tạo được tác phẩm hội họa hoàn chỉnh.
-${NOTE}` },
-    ]},
-    { course:'Luyện Thi Vẽ', emoji:'🏆', items:[
-      { c:`🏆 LUYỆN THI VẼ — LỚP NHÓM
-💰 Học phí: 7.200.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung: Luyện thi chứng chỉ vẽ quốc tế – lớp nhóm.
-✨ HV được chuẩn bị bài bản cho kỳ thi.
-${NOTE}` },
-    ]},
-    { course:'Ballet & Múa', emoji:'🩰', items:[
-      { c:`🩰 BALLET 3–5 TUỔI — LỚP NHÓM
-💰 Học phí: 3.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen âm nhạc và chuyển động cơ bản
-2️⃣ Học tư thế đứng đúng và cân bằng
-3️⃣ Luyện tập bước nhảy ballet đơn giản
-4️⃣ Biểu diễn bài múa ngắn theo chủ đề
-
-✨ Sau khóa, bé phát triển sự dẻo dai, phối hợp cơ thể và yêu nghệ thuật.
-${NOTE}` },
-      { c:`🩰 BALLET 6–9 TUỔI — LỚP NHÓM
-💰 Học phí: 3.600.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Ôn tư thế và kỹ thuật ballet cơ bản
-2️⃣ Các bước nhảy và chuyển động trung cấp
-3️⃣ Phối hợp nhịp điệu và âm nhạc
-4️⃣ Biểu diễn bài múa hoàn chỉnh cuối khóa
-
-✨ Sau khóa, HV thành thục kỹ thuật ballet và tự tin trên sân khấu.
-${NOTE}` },
-      { c:`💃 DANCE (NHẢY HIỆN ĐẠI) — LỚP NHÓM
-💰 Học phí: 3.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Khởi động cơ thể và học nhịp điệu cơ bản
-2️⃣ Các vũ đạo hiện đại phổ biến
-3️⃣ Phối hợp nhóm và đồng điệu
-4️⃣ Biểu diễn bài múa nhóm cuối khóa
-
-✨ Sau khóa, HV nhảy các phong cách hiện đại tự tin.
-${NOTE}` },
-      { c:`🕺 KHIÊU VŨ — LỚP NHÓM
-💰 Học phí: 3.000.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Làm quen các điệu nhảy khiêu vũ cơ bản
-2️⃣ Tư thế, bước đi và dẫn dắt
-3️⃣ Phối hợp cặp đôi hoặc nhóm
-4️⃣ Thực hành trong tình huống thực tế
-
-✨ Sau khóa, HV khiêu vũ tự tin trong sự kiện, tiệc.
-${NOTE}` },
-      { c:`🏮 MÚA CỔ TRANG — LỚP NHÓM
-💰 Học phí: 3.600.000đ / khóa
-⏱ Thời lượng: 3 tháng (24 buổi)
-📅 Tần suất: 2 buổi/tuần
-
-📚 Nội dung:
-1️⃣ Tìm hiểu múa cổ trang và văn hóa dân tộc
-2️⃣ Các động tác tay, chân đặc trưng
-3️⃣ Luyện biểu cảm và dáng điệu
-4️⃣ Biểu diễn bài múa theo chủ đề cổ trang
-
-✨ Sau khóa, HV biểu diễn múa cổ trang đúng phong cách và tự tin.
-${NOTE}` },
-    ]},
-    { course:'Học Thử', emoji:'⭐', items:[
-      { c:`⭐ HỌC THỬ LỚP NHÓM (10:1)
-💰 Học phí: 100.000đ / buổi
-
-Anh/chị và bé có thể trải nghiệm 1 buổi học thử trong lớp nhóm để cảm nhận không khí và phương pháp giảng dạy trước khi đăng ký chính thức ạ.
-
-Liên hệ để đặt lịch học thử phù hợp.` },
-      { c:`⭐ HỌC THỬ 2-1
-💰 Học phí: 250.000đ / buổi
-
-Anh/chị và bé có thể trải nghiệm 1 buổi học thử 2-1 (2 học viên/1 giáo viên) để cảm nhận phương pháp học trước khi đăng ký chính thức ạ.
-
-Liên hệ để đặt lịch học thử phù hợp.` },
-      { c:`⭐ HỌC THỬ 1-1 (CÁ NHÂN)
-💰 Học phí: 500.000đ / buổi
-
-Anh/chị và bé có thể trải nghiệm 1 buổi học 1-1 cùng giáo viên để được tư vấn lộ trình và phương pháp học cá nhân hoá trước khi đăng ký chính thức ạ.
-
-Liên hệ để đặt lịch học thử phù hợp.` },
-    ]},
+  const N = 'Anh/chị có thể tham gia buổi học trải nghiệm trước khi đăng ký lớp chính thức ạ.';
+  const N5 = 'Anh/chị có thể tham gia buổi học trải nghiệm (500.000đ) trước khi đăng ký lớp chính thức ạ.';
+  const N1 = 'Anh/chị có thể tham gia buổi học trải nghiệm (100.000đ) trước khi đăng ký lớp chính thức ạ.';
+
+  function mk(course, emoji, items) {
+    return items.map(([title, fee, time, buoi, freq, dong2, noi_dung, after, note]) => ({
+      id: Date.now() + Math.random(),
+      course, emoji,
+      content: `${title}\n💰 Học phí: ${fee}\n⏱ Thời lượng: ${time} (${buoi})\n📅 Tần suất: ${freq}${dong2 ? '\n💳 Đóng 2 lần: ' + dong2 : ''}\n\n📚 Nội dung khóa học:\n${noi_dung}\n\n✨ ${after}\n${note}`
+    }));
+  }
+
+  const GUITAR_ND = `1️⃣ Làm quen guitar và kỹ thuật cơ bản\n2️⃣ Học hợp âm, tiết tấu\n3️⃣ Học cách đệm các bài hát quen thuộc\n4️⃣ Thực hành đệm và biểu diễn các bài yêu thích`;
+  const GUITAR_AF = 'Sau khóa học, học viên có thể tự đệm và trình diễn tự tin cùng nhạc cụ.';
+  const LTG_ND = `1️⃣ Ôn luyện kỹ thuật guitar chuyên sâu\n2️⃣ Học và luyện các bài thi theo giáo trình chuẩn\n3️⃣ Rèn luyện tốc độ, độ chính xác và biểu cảm\n4️⃣ Thực hành thi thử và nhận xét chi tiết`;
+  const LTG_AF = 'Sau khóa học, học viên sẵn sàng tham gia các kỳ thi guitar với kỹ thuật vững chắc.';
+
+  const VIOLIN_ND = `1️⃣ Làm quen violin và tư thế cầm đàn đúng\n2️⃣ Học kỹ thuật kéo vĩ cung cơ bản\n3️⃣ Học đọc nhạc và luyện tập giai điệu\n4️⃣ Thực hành biểu diễn các bản nhạc đơn giản`;
+  const VIOLIN_AF = 'Sau khóa học, học viên có thể chơi được các bản nhạc cơ bản và tự tin biểu diễn.';
+  const LTV_ND = `1️⃣ Ôn luyện kỹ thuật violin chuyên sâu\n2️⃣ Học và luyện các bài thi theo giáo trình chuẩn\n3️⃣ Rèn luyện tốc độ, độ chính xác và biểu cảm\n4️⃣ Thực hành thi thử và nhận xét chi tiết`;
+  const LTV_AF = 'Sau khóa học, học viên sẵn sàng tham gia các kỳ thi violin với kỹ thuật vững chắc.';
+
+  const PIANO_ND = `1️⃣ Làm quen piano và hợp âm cơ bản\n2️⃣ Học đọc nhạc và luyện ngón tay\n3️⃣ Học đệm và chơi các bản nhạc đơn giản\n4️⃣ Thực hành chơi các bài nhạc yêu thích`;
+  const PIANO_AF = 'Sau khóa học, học viên có thể tự chơi piano và đệm hát một số bài hát phổ biến.';
+  const LTP_ND = `1️⃣ Ôn luyện kỹ thuật piano chuyên sâu\n2️⃣ Học và luyện các bài thi theo giáo trình chuẩn\n3️⃣ Rèn luyện tốc độ, độ chính xác và biểu cảm\n4️⃣ Thực hành thi thử và nhận xét chi tiết`;
+  const LTP_AF = 'Sau khóa học, học viên sẵn sàng tham gia các kỳ thi piano với kỹ thuật vững chắc.';
+
+  const PDH_ND = `1️⃣ Làm quen piano và hợp âm cơ bản\n2️⃣ Học cách đệm hát các bài hát quen thuộc\n3️⃣ Học pattern đệm piano đơn giản\n4️⃣ Thực hành đệm và hát các bài yêu thích`;
+  const PDH_AF = 'Sau khóa học, học viên có thể tự đệm và hát một số bài hát phổ biến.';
+
+  const UKU_ND = `1️⃣ Làm quen ukulele và tiết tấu cơ bản\n2️⃣ Học hợp âm và kỹ thuật gảy đàn\n3️⃣ Học đệm các bài hát vui và dễ chơi\n4️⃣ Thực hành đệm hát các bài yêu thích`;
+  const UKU_AF = 'Sau khóa học, học viên có thể tự đệm hát được nhiều bài nhạc phổ biến một cách tự tin.';
+
+  const TN_ND = `1️⃣ Luyện giọng và hơi thở cơ bản\n2️⃣ Học kỹ thuật hát rõ lời, lấy hơi đúng\n3️⃣ Học xử lý cảm xúc qua giọng hát\n4️⃣ Thực hành thể hiện các bài hát yêu thích`;
+  const TN_AF = 'Sau khóa học, học viên có thể hát đúng kỹ thuật và tự tin biểu diễn trước đám đông.';
+
+  const MN_ND = `1️⃣ Làm quen màu sắc và hình khối cơ bản\n2️⃣ Vẽ các hình đơn giản theo chủ đề\n3️⃣ Phát triển sự sáng tạo qua các bài tập\n4️⃣ Tạo ra các tác phẩm nghệ thuật đơn giản`;
+  const CB_ND = `1️⃣ Kỹ thuật vẽ phác thảo và đường nét\n2️⃣ Học bố cục, ánh sáng và bóng đổ\n3️⃣ Vẽ tĩnh vật và phong cảnh cơ bản\n4️⃣ Thực hành hoàn thiện các bài vẽ hoàn chỉnh`;
+  const KH_ND = `1️⃣ Làm quen chất liệu và dụng cụ vẽ chuyên biệt\n2️⃣ Học kỹ thuật xử lý màu đặc trưng theo từng chất liệu\n3️⃣ Thực hành vẽ các chủ đề đa dạng\n4️⃣ Hoàn thiện bài vẽ bằng chất liệu đã chọn`;
+  const AC_ND = `1️⃣ Làm quen với canvas hoặc bảng vẽ kỹ thuật số\n2️⃣ Học kỹ thuật pha màu và xây dựng lớp màu\n3️⃣ Thực hành vẽ tác phẩm trên canvas hoặc phần mềm\n4️⃣ Hoàn thiện và trình bày tác phẩm cá nhân`;
+  const LTV_ND2 = `1️⃣ Ôn luyện kỹ thuật vẽ chuyên sâu theo đề thi\n2️⃣ Học bố cục, tỉ lệ và biểu đạt cảm xúc trên tranh\n3️⃣ Luyện tập theo đúng thể thức và thời gian thi\n4️⃣ Thực hành thi thử và nhận xét chi tiết`;
+
+  const B35_ND = `1️⃣ Làm quen với âm nhạc và chuyển động cơ bản\n2️⃣ Học tư thế đứng đúng và khả năng cân bằng\n3️⃣ Luyện tập các bước nhảy ballet đơn giản\n4️⃣ Biểu diễn các bài múa ngắn theo chủ đề`;
+  const B69_ND = `1️⃣ Ôn luyện tư thế và kỹ thuật ballet cơ bản\n2️⃣ Học các bước nhảy và chuyển động trung cấp\n3️⃣ Luyện tập phối hợp nhịp điệu và âm nhạc\n4️⃣ Biểu diễn bài múa hoàn chỉnh cuối khóa`;
+  const DA_ND = `1️⃣ Khởi động cơ thể và học nhịp điệu cơ bản\n2️⃣ Học các vũ đạo hiện đại phổ biến\n3️⃣ Luyện tập phối hợp nhóm và đồng điệu\n4️⃣ Biểu diễn bài múa nhóm cuối khóa`;
+  const KV_ND = `1️⃣ Làm quen các điệu nhảy khiêu vũ cơ bản\n2️⃣ Học tư thế, bước đi và dẫn dắt\n3️⃣ Luyện tập phối hợp cặp đôi hoặc nhóm\n4️⃣ Thực hành nhảy trong các tình huống thực tế`;
+  const MCT_ND = `1️⃣ Tìm hiểu về múa cổ trang và văn hóa dân tộc\n2️⃣ Học các động tác tay, chân đặc trưng\n3️⃣ Luyện tập biểu cảm và dáng điệu trên nhạc cụ thể\n4️⃣ Biểu diễn bài múa hoàn chỉnh theo chủ đề cổ trang`;
+  const HT_ND = `1️⃣ Tìm hiểu môn học và không gian lớp học\n2️⃣ Trải nghiệm trực tiếp cùng giáo viên\n3️⃣ Nhận tư vấn lộ trình học phù hợp\n4️⃣ Giải đáp mọi thắc mắc trước khi đăng ký`;
+
+  const allTemplates = [
+    ...mk('Guitar','🎸', [
+      ['🎸 GUITAR — LỚP NHÓM 3 HỌC VIÊN (3 THÁNG)','5.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.700.000đ/lần',GUITAR_ND,GUITAR_AF,N],
+      ['🎸 GUITAR — LỚP NHÓM 3 HỌC VIÊN (1 THÁNG)','2.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',GUITAR_ND,GUITAR_AF,N],
+      ['🎸 GUITAR — LỚP 2 HỌC VIÊN (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',GUITAR_ND,GUITAR_AF,N],
+      ['🎸 GUITAR — LỚP 2 HỌC VIÊN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',GUITAR_ND,GUITAR_AF,N],
+      ['🎸 GUITAR — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',GUITAR_ND,GUITAR_AF,N5],
+      ['🎸 GUITAR — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',GUITAR_ND,GUITAR_AF,N5],
+    ]),
+    ...mk('Luyện Thi Guitar','🏆', [
+      ['🎸 LUYỆN THI GUITAR — NHÓM 3 HỌC VIÊN (3 THÁNG)','6.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.000.000đ/lần',LTG_ND,LTG_AF,N],
+      ['🎸 LUYỆN THI GUITAR — NHÓM 3 HỌC VIÊN (1 THÁNG)','2.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTG_ND,LTG_AF,N],
+      ['🎸 LUYỆN THI GUITAR — LỚP 2 HỌC VIÊN (3 THÁNG)','8.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','4.200.000đ/lần',LTG_ND,LTG_AF,N],
+      ['🎸 LUYỆN THI GUITAR — LỚP 2 HỌC VIÊN (1 THÁNG)','3.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTG_ND,LTG_AF,N],
+      ['🎸 LUYỆN THI GUITAR — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',LTG_ND,LTG_AF,N5],
+      ['🎸 LUYỆN THI GUITAR — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTG_ND,LTG_AF,N5],
+    ]),
+    ...mk('Violin','🎻', [
+      ['🎻 VIOLIN — LỚP NHÓM 3 HỌC VIÊN (3 THÁNG)','5.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.700.000đ/lần',VIOLIN_ND,VIOLIN_AF,N],
+      ['🎻 VIOLIN — LỚP NHÓM 3 HỌC VIÊN (1 THÁNG)','2.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',VIOLIN_ND,VIOLIN_AF,N],
+      ['🎻 VIOLIN — LỚP 2 HỌC VIÊN (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',VIOLIN_ND,VIOLIN_AF,N],
+      ['🎻 VIOLIN — LỚP 2 HỌC VIÊN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',VIOLIN_ND,VIOLIN_AF,N],
+      ['🎻 VIOLIN — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',VIOLIN_ND,VIOLIN_AF,N5],
+      ['🎻 VIOLIN — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',VIOLIN_ND,VIOLIN_AF,N5],
+    ]),
+    ...mk('Luyện Thi Violin','🏆', [
+      ['🎻 LUYỆN THI VIOLIN — NHÓM 3 HỌC VIÊN (3 THÁNG)','6.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.000.000đ/lần',LTV_ND,LTV_AF,N],
+      ['🎻 LUYỆN THI VIOLIN — NHÓM 3 HỌC VIÊN (1 THÁNG)','2.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTV_ND,LTV_AF,N],
+      ['🎻 LUYỆN THI VIOLIN — LỚP 2 HỌC VIÊN (3 THÁNG)','8.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','4.200.000đ/lần',LTV_ND,LTV_AF,N],
+      ['🎻 LUYỆN THI VIOLIN — LỚP 2 HỌC VIÊN (1 THÁNG)','3.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTV_ND,LTV_AF,N],
+      ['🎻 LUYỆN THI VIOLIN — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',LTV_ND,LTV_AF,N5],
+      ['🎻 LUYỆN THI VIOLIN — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTV_ND,LTV_AF,N5],
+    ]),
+    ...mk('Piano','🎹', [
+      ['🎹 PIANO — LỚP NHÓM 3 HỌC VIÊN (3 THÁNG)','5.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.700.000đ/lần',PIANO_ND,PIANO_AF,N],
+      ['🎹 PIANO — LỚP NHÓM 3 HỌC VIÊN (1 THÁNG)','2.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',PIANO_ND,PIANO_AF,N],
+      ['🎹 PIANO — LỚP 2 HỌC VIÊN (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',PIANO_ND,PIANO_AF,N],
+      ['🎹 PIANO — LỚP 2 HỌC VIÊN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',PIANO_ND,PIANO_AF,N],
+      ['🎹 PIANO — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',PIANO_ND,PIANO_AF,N5],
+      ['🎹 PIANO — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',PIANO_ND,PIANO_AF,N5],
+    ]),
+    ...mk('Luyện Thi Piano','🏆', [
+      ['🎹 LUYỆN THI PIANO — NHÓM 3 HỌC VIÊN (3 THÁNG)','6.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.000.000đ/lần',LTP_ND,LTP_AF,N],
+      ['🎹 LUYỆN THI PIANO — NHÓM 3 HỌC VIÊN (1 THÁNG)','2.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTP_ND,LTP_AF,N],
+      ['🎹 LUYỆN THI PIANO — LỚP 2 HỌC VIÊN (3 THÁNG)','8.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','4.200.000đ/lần',LTP_ND,LTP_AF,N],
+      ['🎹 LUYỆN THI PIANO — LỚP 2 HỌC VIÊN (1 THÁNG)','3.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTP_ND,LTP_AF,N],
+      ['🎹 LUYỆN THI PIANO — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',LTP_ND,LTP_AF,N5],
+      ['🎹 LUYỆN THI PIANO — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTP_ND,LTP_AF,N5],
+    ]),
+    ...mk('Piano Đệm Hát','🎹🎤', [
+      ['🎹🎤 PIANO ĐỆM HÁT — LỚP NHÓM 3 HỌC VIÊN (3 THÁNG)','5.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.700.000đ/lần',PDH_ND,PDH_AF,N],
+      ['🎹🎤 PIANO ĐỆM HÁT — LỚP NHÓM 3 HỌC VIÊN (1 THÁNG)','2.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',PDH_ND,PDH_AF,N],
+      ['🎹🎤 PIANO ĐỆM HÁT — LỚP 2 HỌC VIÊN (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',PDH_ND,PDH_AF,N],
+      ['🎹🎤 PIANO ĐỆM HÁT — LỚP 2 HỌC VIÊN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',PDH_ND,PDH_AF,N],
+      ['🎹🎤 PIANO ĐỆM HÁT — LỚP 1-1 CÁ NHÂN (3 THÁNG)','4.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.100.000đ/lần',PDH_ND,PDH_AF,'Anh/chị có thể tham gia buổi workshop cảm thụ âm nhạc trước khi đăng ký ạ.'],
+      ['🎹🎤 PIANO ĐỆM HÁT — LỚP 1-1 CÁ NHÂN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',PDH_ND,PDH_AF,'Anh/chị có thể tham gia buổi workshop cảm thụ âm nhạc trước khi đăng ký ạ.'],
+    ]),
+    ...mk('Ukulele','🪕', [
+      ['🪕 UKULELE — LỚP NHÓM 3 HỌC VIÊN (3 THÁNG)','5.400.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.700.000đ/lần',UKU_ND,UKU_AF,N],
+      ['🪕 UKULELE — LỚP NHÓM 3 HỌC VIÊN (1 THÁNG)','2.000.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',UKU_ND,UKU_AF,N],
+      ['🪕 UKULELE — LỚP 2 HỌC VIÊN (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',UKU_ND,UKU_AF,N],
+      ['🪕 UKULELE — LỚP 2 HỌC VIÊN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',UKU_ND,UKU_AF,N],
+      ['🪕 UKULELE — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',UKU_ND,UKU_AF,N5],
+      ['🪕 UKULELE — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',UKU_ND,UKU_AF,N5],
+    ]),
+    ...mk('Thanh Nhạc','🎤', [
+      ['🎤 THANH NHẠC — LỚP 2 HỌC VIÊN (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',TN_ND,TN_AF,N],
+      ['🎤 THANH NHẠC — LỚP 2 HỌC VIÊN (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',TN_ND,TN_AF,N],
+      ['🎤 THANH NHẠC — LỚP 1-1 CÁ NHÂN (3 THÁNG)','12.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','6.000.000đ/lần',TN_ND,TN_AF,N5],
+      ['🎤 THANH NHẠC — LỚP 1-1 CÁ NHÂN (1 THÁNG)','4.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',TN_ND,TN_AF,N5],
+    ]),
+    ...mk('Vẽ – Mầm Non','🖍️', [
+      ['🖍️ VẼ MẦM NON — LỚP NHÓM (3 THÁNG)','3.600.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.800.000đ/lần',MN_ND,'Sau khóa học, bé có nền tảng cảm nhận màu sắc, hình dạng và khả năng sáng tạo tự do.',N1],
+      ['🖍️ VẼ MẦM NON — LỚP NHÓM (1 THÁNG)','1.400.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',MN_ND,'Sau khóa học, bé có nền tảng cảm nhận màu sắc, hình dạng và khả năng sáng tạo tự do.',N1],
+    ]),
+    ...mk('Vẽ – Căn Bản','✏️', [
+      ['✏️ VẼ CĂN BẢN — LỚP NHÓM (3 THÁNG)','3.300.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.650.000đ/lần',CB_ND,'Sau khóa học, học viên có nền tảng vẽ căn bản vững chắc để học các kỹ thuật nâng cao hơn.',N1],
+      ['✏️ VẼ CĂN BẢN — LỚP NHÓM (1 THÁNG)','1.300.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',CB_ND,'Sau khóa học, học viên có nền tảng vẽ căn bản vững chắc để học các kỹ thuật nâng cao hơn.',N1],
+    ]),
+    ...mk('Vẽ – Ký Họa / Màu Nước / Marker','🖊️', [
+      ['🖊️ KÝ HỌA / MÀU NƯỚC / MÀU MARKER — LỚP NHÓM (3 THÁNG)','3.600.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.800.000đ/lần',KH_ND,'Sau khóa học, học viên có thể sử dụng thành thạo chất liệu đã học và thể hiện phong cách riêng.',N1],
+      ['🖊️ KÝ HỌA / MÀU NƯỚC / MÀU MARKER — LỚP NHÓM (1 THÁNG)','1.400.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',KH_ND,'Sau khóa học, học viên có thể sử dụng thành thạo chất liệu đã học và thể hiện phong cách riêng.',N1],
+    ]),
+    ...mk('Vẽ – Acrylic / Digital Art','🖼️', [
+      ['🖼️ MÀU ACRYLIC CANVAS / DIGITAL ART — LỚP NHÓM (3 THÁNG)','4.800.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','2.400.000đ/lần',AC_ND,'Sau khóa học, học viên có thể tạo ra các tác phẩm hội họa hoàn chỉnh trên canvas hoặc môi trường số.',N1],
+      ['🖼️ MÀU ACRYLIC CANVAS / DIGITAL ART — LỚP NHÓM (1 THÁNG)','1.800.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',AC_ND,'Sau khóa học, học viên có thể tạo ra các tác phẩm hội họa hoàn chỉnh trên canvas hoặc môi trường số.',N1],
+    ]),
+    ...mk('Luyện Thi Vẽ','🎨', [
+      ['🎨 LUYỆN THI VẼ — LỚP NHÓM (3 THÁNG)','7.200.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','3.600.000đ/lần',LTV_ND2,'Sau khóa học, học viên sẵn sàng tham gia các kỳ thi mỹ thuật với kỹ năng và sự tự tin cao.',N1],
+      ['🎨 LUYỆN THI VẼ — LỚP NHÓM (1 THÁNG)','2.600.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',LTV_ND2,'Sau khóa học, học viên sẵn sàng tham gia các kỳ thi mỹ thuật với kỹ năng và sự tự tin cao.',N1],
+    ]),
+    ...mk('Ballet 3–5 Tuổi','🩰', [
+      ['🩰 BALLET 3–5 TUỔI — LỚP NHÓM (3 THÁNG)','3.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.500.000đ/lần',B35_ND,'Sau khóa học, bé phát triển sự dẻo dai, phối hợp cơ thể và tình yêu thích âm nhạc nghệ thuật.',N1],
+      ['🩰 BALLET 3–5 TUỔI — LỚP NHÓM (1 THÁNG)','1.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',B35_ND,'Sau khóa học, bé phát triển sự dẻo dai, phối hợp cơ thể và tình yêu thích âm nhạc nghệ thuật.',N1],
+    ]),
+    ...mk('Ballet 6–9 Tuổi','🩰', [
+      ['🩰 BALLET 6–9 TUỔI — LỚP NHÓM (3 THÁNG)','3.600.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.800.000đ/lần',B69_ND,'Sau khóa học, học viên đạt được sự thành thục trong kỹ thuật ballet và tự tin trên sân khấu.',N1],
+      ['🩰 BALLET 6–9 TUỔI — LỚP NHÓM (1 THÁNG)','1.400.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',B69_ND,'Sau khóa học, học viên đạt được sự thành thục trong kỹ thuật ballet và tự tin trên sân khấu.',N1],
+    ]),
+    ...mk('Dance','💃', [
+      ['💃 DANCE (NHẢY HIỆN ĐẠI) — LỚP NHÓM (3 THÁNG)','3.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.500.000đ/lần',DA_ND,'Sau khóa học, học viên có thể nhảy các phong cách hiện đại và tự tin biểu diễn trước mọi người.',N1],
+      ['💃 DANCE (NHẢY HIỆN ĐẠI) — LỚP NHÓM (1 THÁNG)','1.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',DA_ND,'Sau khóa học, học viên có thể nhảy các phong cách hiện đại và tự tin biểu diễn trước mọi người.',N1],
+    ]),
+    ...mk('Khiêu Vũ','🕺', [
+      ['🕺 KHIÊU VŨ — LỚP NHÓM (3 THÁNG)','3.000.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.500.000đ/lần',KV_ND,'Sau khóa học, học viên có thể khiêu vũ tự tin trong các sự kiện, tiệc, giao lưu xã hội.',N1],
+      ['🕺 KHIÊU VŨ — LỚP NHÓM (1 THÁNG)','1.200.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',KV_ND,'Sau khóa học, học viên có thể khiêu vũ tự tin trong các sự kiện, tiệc, giao lưu xã hội.',N1],
+    ]),
+    ...mk('Múa Cổ Trang','🏮', [
+      ['🏮 MÚA CỔ TRANG — LỚP NHÓM (3 THÁNG)','3.600.000đ / khóa','3 tháng','24 buổi','2 buổi/tuần','1.800.000đ/lần',MCT_ND,'Sau khóa học, học viên có thể biểu diễn múa cổ trang đúng phong cách và tự tin trên sân khấu.',N1],
+      ['🏮 MÚA CỔ TRANG — LỚP NHÓM (1 THÁNG)','1.400.000đ / tháng','1 tháng','8 buổi','2 buổi/tuần','',MCT_ND,'Sau khóa học, học viên có thể biểu diễn múa cổ trang đúng phong cách và tự tin trên sân khấu.',N1],
+    ]),
+    ...mk('Học Thử','⭐', [
+      ['🔔 HỌC THỬ — LỚP NHÓM (10:1)','100.000đ / buổi','1 buổi trải nghiệm','1 buổi','','',HT_ND,'Buổi học thử giúp anh/chị cảm nhận thực tế trước khi quyết định đăng ký khóa học chính thức.',''],
+      ['🔔 HỌC THỬ — LỚP 2 HỌC VIÊN (2-1)','250.000đ / buổi','1 buổi trải nghiệm','1 buổi','','',HT_ND,'Buổi học thử giúp anh/chị cảm nhận thực tế trước khi quyết định đăng ký khóa học chính thức.',''],
+      ['🔔 HỌC THỬ — LỚP 1-1 CÁ NHÂN','500.000đ / buổi','1 buổi trải nghiệm','1 buổi','','',HT_ND,'Buổi học thử giúp anh/chị cảm nhận thực tế trước khi quyết định đăng ký khóa học chính thức.',''],
+    ]),
   ];
-  let id = Date.now();
-  seed.forEach(group => {
-    group.items.forEach(v => {
-      templates.push({ id: id++, course: group.course, emoji: group.emoji, content: v.c });
-    });
-  });
+
+  let baseId = Date.now();
+  allTemplates.forEach((t, i) => { t.id = baseId + i; templates.push(t); });
   save();
 }
 seedTemplatesIfEmpty();
