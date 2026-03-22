@@ -186,61 +186,8 @@
     <div class="course-card" onclick="openCourse('camthu')"><span class="course-emoji">🎼</span><div class="course-name">Cảm Thụ Âm Nhạc</div><div class="course-count">Miễn phí · 24 buổi</div></div>
     <div class="course-card" onclick="openCourse('pianodemhat')"><span class="course-emoji">🎹🎤</span><div class="course-name">Piano Đệm Hát</div><div class="course-count">9 gói học phí</div></div>
     <div class="course-card" onclick="openCourse('trong')"><span class="course-emoji">🥁</span><div class="course-name">Trống</div><div class="course-count">9 gói học phí</div></div>
+    <div class="course-card" onclick="openCourse('khac')"><span class="course-emoji">🗂️</span><div class="course-name">Mục Khác</div><div class="course-count">Học thử · Đồ · Sách · Giày · Phòng</div></div>
     <div id="custom-courses-container" style="display:contents"></div>
-  </div>
-
-  <!-- BẢNG GIÁ MỤC KHÁC -->
-  <div style="margin-top:28px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--navy);">Mục <span style="color:var(--gold);">Khác</span></div>
-      <div style="font-size:11px;color:var(--muted);font-weight:500;">Học thử · Đồ ballet · Sách · Giày · Phòng thuê</div>
-    </div>
-    <div style="overflow-x:auto;border-radius:var(--r-lg);box-shadow:var(--shadow-sm);border:1px solid rgba(200,146,42,.1);">
-      <table style="min-width:700px;border-collapse:collapse;font-size:12.5px;width:100%;">
-        <thead>
-          <tr style="background:var(--gold);">
-            <th style="padding:11px 16px;text-align:left;color:var(--navy);font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;width:160px;">Nội Dung</th>
-            <th style="padding:11px 16px;text-align:left;color:var(--navy);font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Note</th>
-            <th style="padding:11px 16px;text-align:right;color:var(--navy);font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">Giá</th>
-            <th style="padding:11px 16px;text-align:left;color:var(--navy);font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Ghi Chú</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- HỌC THỬ -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#dcfce7;font-weight:800;font-size:11px;color:#15803d;letter-spacing:1px;text-transform:uppercase;">⭐ Học Thử</td></tr>
-          <tr style="background:#f0fdf4;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">1:1</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">500.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">2:1</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">250.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <tr style="background:#f0fdf4;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">10:1</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">100.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <!-- ĐỒ BALLET -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#fce7f3;font-weight:800;font-size:11px;color:#be185d;letter-spacing:1px;text-transform:uppercase;">🩰 Đồ Ballet</td></tr>
-          <tr style="background:#fff0f6;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Rời</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">300.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;">Size 130 (4 bộ) · 140 (2 bộ) · 150 (2 bộ) · 160 (1 bộ) · 170 (1 bộ)</td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Liền</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">200.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <!-- SÁCH -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#eff6ff;font-weight:800;font-size:11px;color:#1d4ed8;letter-spacing:1px;text-transform:uppercase;">📚 Sách</td></tr>
-          <tr style="background:#f0f7ff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Grade</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">50.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Faber (AVT)</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">60.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;">250.000đ sách gốc in tại VN · 450.000đ sách gốc in tại Mỹ</td></tr>
-          <tr style="background:#f0f7ff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Guitar</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">50.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Người lớn</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">100.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <!-- GIÀY -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#fef9c3;font-weight:800;font-size:11px;color:#92400e;letter-spacing:1px;text-transform:uppercase;">👟 Giày</td></tr>
-          <tr style="background:#fefce8;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">1 đôi lớn</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--red);">150.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">1 đôi bé cao cấp</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">120.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <tr style="background:#fefce8;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">1 đôi bé loại thường</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">60.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <!-- TẤT -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#f3e8ff;font-weight:800;font-size:11px;color:#6d28d9;letter-spacing:1px;text-transform:uppercase;">🧦 Tất</td></tr>
-          <tr style="background:#faf5ff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">1 đôi</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">50.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;"></td></tr>
-          <!-- PHÒNG NHẢY -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#e0f2fe;font-weight:800;font-size:11px;color:#0369a1;letter-spacing:1px;text-transform:uppercase;">🏠 Phòng Nhảy</td></tr>
-          <tr style="background:#f0f9ff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Phòng lớn Tầng 1</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">300.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;">Không sử dụng máy lạnh: 230.000đ</td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Phòng nhỏ Tầng 2</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">250.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;">Không sử dụng máy lạnh: 200.000đ</td></tr>
-          <tr style="background:#f0f9ff;"><td style="padding:9px 16px;color:var(--muted);" colspan="2"></td><td style="padding:9px 16px;text-align:right;font-size:11.5px;color:var(--navy);font-weight:600;" colspan="2">Thuê theo tháng (từ 1 tháng): 5.000.000đ/tháng<br>Thuê theo tháng (từ 3 tháng): 4.000.000đ/tháng<br><span style="color:var(--muted);">(Liên hệ check lịch cố định)</span></td></tr>
-          <!-- THUÊ PHÒNG PIANO -->
-          <tr><td colspan="4" style="padding:8px 16px;background:#fff7ed;font-weight:800;font-size:11px;color:#c2410c;letter-spacing:1px;text-transform:uppercase;">🎹 Thuê Phòng Piano</td></tr>
-          <tr style="background:#fffbeb;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Theo Giờ</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">150.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;">Check phòng trống lịch</td></tr>
-          <tr style="background:#fff;"><td style="padding:9px 16px;color:var(--muted);"></td><td style="padding:9px 16px;color:var(--navy);font-weight:600;">Theo Gói 3 tháng</td><td style="padding:9px 16px;text-align:right;font-weight:800;color:var(--gold);">3.000.000 đ</td><td style="padding:9px 16px;color:var(--muted);font-size:11.5px;">Tuần 2 buổi cố định · Đăng ký lịch phòng trống cố định</td></tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 </div>
 
@@ -470,6 +417,8 @@
     <button class="filter-tab active" onclick="setLeadFilter('all',this)">Tất Cả</button>
     <button class="filter-tab" onclick="setLeadFilter('Chưa liên hệ',this)">Chưa Liên Hệ</button>
     <button class="filter-tab" onclick="setLeadFilter('Đã tư vấn',this)">Đã Tư Vấn</button>
+    <button class="filter-tab" onclick="setLeadFilter('Đăng ký học thử',this)" style="background:#fef9c3;color:#713f12;border-color:#fcd34d;">⭐ Học Thử</button>
+    <button class="filter-tab" onclick="setLeadFilter('Đã đăng ký học',this)" style="background:#dcfce7;color:#14532d;border-color:#4ade80;">✅ Đã Đăng Ký</button>
     <button class="filter-tab" onclick="setLeadFilter('Trực tiếp',this)">Trực Tiếp</button>
     <button class="filter-tab" onclick="setLeadFilter('Facebook',this)">Facebook</button>
     <button class="filter-tab" onclick="setLeadFilter('Tiktok',this)">Tiktok</button>
@@ -481,6 +430,7 @@
           <tr>
             <th>#</th><th>Họ Tên Học Viên</th><th>Ngày Sinh</th><th>Phụ Huynh (Zalo)</th>
             <th>SĐT</th><th>Khóa Quan Tâm</th><th>Nguồn Data</th><th>Tình Trạng</th>
+            <th>Học Thử</th><th>Dụng Cụ</th><th>Tổng Thu</th>
             <th>Ghi Chú</th><th>Thao Tác</th>
           </tr>
         </thead>
@@ -529,11 +479,32 @@
         </select>
       </div>
       <div class="form-group full"><label>Tình Trạng *</label>
-        <select id="lf-status">
+        <select id="lf-status" onchange="onLeadStatusChange()">
           <option value="">-- Chọn tình trạng --</option>
           <option>Chưa liên hệ</option>
           <option>Đã tư vấn</option>
+          <option>Đăng ký học thử</option>
+          <option>Đã đăng ký học</option>
         </select>
+      </div>
+      <!-- Học thử -->
+      <div class="form-group" id="lf-hocthu-wrap" style="display:none;"><label>Loại Học Thử</label>
+        <select id="lf-hocthu-type">
+          <option value="">-- Chọn loại --</option>
+          <option value="100000">Học thử nhóm (10:1) – 100.000đ</option>
+          <option value="250000">Học thử 2-1 – 250.000đ</option>
+          <option value="500000">Học thử 1-1 – 500.000đ</option>
+        </select>
+      </div>
+      <div class="form-group" id="lf-hocthu-fee-wrap" style="display:none;"><label>Tiền Học Thử (đ)</label>
+        <input id="lf-hocthu-fee" type="number" placeholder="100000" min="0">
+      </div>
+      <!-- Dụng cụ -->
+      <div class="form-group full" id="lf-dungcu-wrap" style="display:none;">
+        <label>Dụng Cụ / Đồ Mua Thêm (từ Mục Khác)</label>
+        <div id="lf-dungcu-rows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px;"></div>
+        <button type="button" class="btn btn-outline" onclick="addDungcuRow()" style="font-size:11px;width:fit-content;">+ Thêm dụng cụ</button>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted);">Tổng dụng cụ: <b id="lf-dungcu-total" style="color:var(--gold);">0 đ</b></div>
       </div>
       <div class="form-group full"><label>Ghi Chú / Nội Dung Tư Vấn</label>
         <textarea id="lf-note" rows="3" placeholder="Ghi lại nội dung đã tư vấn, mong muốn của phụ huynh..."></textarea>
