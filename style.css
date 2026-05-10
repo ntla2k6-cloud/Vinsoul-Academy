@@ -1,113 +1,82 @@
-/* ═══════════════════════════════════════════════════════════
-   style_additions.css – Vinsoul Academy v2.0
-   THÊM VÀO CUỐI style.css
-═══════════════════════════════════════════════════════════ */
-
-/* ── Responsive Sidebar ── */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: -280px;
-    top: 0;
-    height: 100vh;
-    z-index: 100;
-    transition: left .3s ease;
-    width: 260px !important;
-    overflow-y: auto;
-  }
-  .sidebar.open { left: 0; }
-
-  .main {
-    margin-left: 0 !important;
-    padding: 60px 12px 20px !important;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  .dash-bottom {
-    grid-template-columns: 1fr !important;
-  }
-
-  table { font-size: 12px; }
-  th, td { padding: 8px 6px !important; }
-  .action-btns { flex-direction: column; gap: 4px; }
-
-  .page-header { padding: 0 0 16px; }
-  .page-title { font-size: 20px !important; }
-
-  .toolbar { flex-direction: column; gap: 10px; }
-
-  .form-grid-2 { grid-template-columns: 1fr !important; }
-
-  .card { padding: 14px !important; }
-}
-
-/* ── Notification badge ── */
-#notif-badge {
-  line-height: 1;
-}
-
-/* ── VietQR modal ── */
-#vietqr-modal { font-family: 'Be Vietnam Pro', sans-serif; }
-#vietqr-modal img { object-fit: contain; border: 2px solid #eee; }
-
-/* ── Student portal ── */
-#page-student-portal .card { margin-bottom: 16px; }
-
-/* ── Audit log table ── */
-#page-audit .table-wrap { overflow-x: auto; }
-
-/* ── Theme variables transition ── */
 :root {
-  transition: --navy .3s, --gold .3s, --accent .3s;
+  --sidebar-width: 240px;
+  --ink:#1a1a1a; --navy:#234A5B; --gold:#F69922; 
+  --cream:#FBEDD3; --cream2:#f0ddb8; --white:#ffffff; 
+  --muted:#7a9aaa; --red:#D94F4F; --green:#2E9E6A;
+  --r:10px; --r-lg:16px; --r-xl:22px; 
+  --shadow-sm:0 2px 10px rgba(35,74,91,.07);
 }
 
-/* ── Hamburger button (shown via JS) ── */
-#hamburger-btn {
-  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+/* THEMES */
+body[data-theme="coffee"] { --navy:#5C4033; --cream:#F5EFEB; --cream2:#E2D1C3; --gold:#D27D2D; --ink:#3C281F; }
+body[data-theme="forest"] { --navy:#1B4D3E; --cream:#E8F3EE; --cream2:#C6DFD6; --gold:#F4C430; --ink:#123524; }
+body[data-theme="dark"]   { --navy:#1A1A1D; --cream:#3A3A40; --cream2:#4A4A50; --white:#2E2E33; --ink:#FFF; --muted:#A0A0A0; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--cream); color: var(--ink); overflow-x: hidden; }
+
+/* === SIDEBAR (DESKTOP) === */
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-width); background: var(--navy); display: flex; flex-direction: column; z-index: 1000; border-right: 1px solid rgba(246,153,34,.12); transition: transform 0.3s ease; }
+.sidebar-inner { overflow-y: auto; flex: 1; padding-bottom: 20px; }
+.logo-area { padding: 20px; display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 35px; height: 35px; background: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.nav-section { padding: 15px 10px 0; }
+.nav-label { font-size: 10px; color: rgba(255,255,255,.4); padding-left: 10px; margin-bottom: 5px; font-weight: bold; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; color: rgba(255,255,255,.7); font-size: 13px; font-weight: 500; }
+.nav-item.active { background: var(--gold); color: var(--navy); font-weight: bold; }
+
+/* === MAIN CONTENT === */
+.main { margin-left: var(--sidebar-width); padding: 25px; transition: margin 0.3s ease; width: calc(100vw - var(--sidebar-width)); }
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+
+/* === COMPONENTS === */
+.card { background: var(--white); border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 15px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+.stat-card { background: var(--white); border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow-sm); }
+.stat-value { font-size: 28px; font-weight: 800; color: var(--navy); }
+
+/* BẢNG (TABLE) CHỐNG TRÀN */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; /* Bắt buộc min-width để cuộn ngang */ }
+th { text-align: left; padding: 10px; background: var(--cream); color: var(--muted); font-size: 12px; }
+td { padding: 10px; border-bottom: 1px solid var(--cream); font-size: 13px; }
+
+.btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: bold; background: var(--navy); color: #fff; white-space: nowrap; }
+.btn-gold { background: var(--gold); }
+
+/* === MOBILE RESPONSIVE (PHÉP MÀU TẠI ĐÂY) === */
+.mobile-header { display: none; background: var(--navy); padding: 15px 20px; color: var(--gold); justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 99; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.hamburger-btn, .theme-btn { background: transparent; border: none; color: var(--gold); font-size: 22px; cursor: pointer; }
+#sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+#sidebar-overlay.show { display: block; }
+
+/* KHI MÀN HÌNH NHỎ HƠN 960PX (IPAD & ĐIỆN THOẠI) */
+@media (max-width: 960px) {
+  .mobile-header { display: flex; }
+  .hidden-mobile { display: none !important; }
+  
+  /* Sidebar trượt từ trái ra */
+  .sidebar { transform: translateX(-100%); width: 260px; }
+  .sidebar.open { transform: translateX(0); }
+  
+  /* Main content full màn hình */
+  .main { margin-left: 0; width: 100vw; padding: 15px; }
+  
+  /* Grid tự động thu hẹp */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: 1fr !important; }
+  
+  .card { padding: 15px; }
 }
 
-/* ── Feedback list ── */
-.feedback-entry {
-  border-left: 3px solid var(--gold);
-  padding: 10px 14px;
-  margin-bottom: 10px;
-  background: var(--cream);
-  border-radius: 0 8px 8px 0;
-}
-
-/* ── QR amount highlight ── */
-.qr-amount {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--gold);
-}
-
-/* ── Zalo config card ── */
-#page-zalo .card { max-width: 520px; }
-
-/* ── Audit action badge ── */
-.audit-action {
-  font-size: 10px;
-  padding: 2px 8px;
-  background: var(--cream2);
-  border-radius: 4px;
-  font-weight: 700;
-  color: var(--navy);
-}
-
-/* ── Student share textarea ── */
-#student-share-input:focus {
-  outline: none;
-  border-color: var(--gold);
-}
-
-/* ── Fix for mobile form inputs ── */
 @media (max-width: 480px) {
-  .vsl-card { padding: 28px 20px; }
-  .stats-grid { grid-template-columns: 1fr 1fr !important; }
-  .stat-card { padding: 14px 10px; }
-  .stat-value { font-size: 26px !important; }
+  .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* Modals */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 9999; display: none; align-items: center; justify-content: center; }
+.modal-backdrop.open { display: flex; }
+.modal { background: var(--white); border-radius: var(--r-xl); padding: 20px; width: 90%; position: relative; }
+.color-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FFF; cursor: pointer; }
